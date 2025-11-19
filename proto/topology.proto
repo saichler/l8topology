@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package l8topo;
+
+option java_multiple_files = true;
+option java_outer_classname = "L8Topo";
+option java_package = "com.types.l8topo";
+option go_package = "./types/l8topo";
+
+message L8Topology {
+  string name = 1;
+  map<string, L8TopologyNode> nodes = 2;
+  map<string, L8TopologyLink> links = 3;
+}
+
+message L8TopologyNode {
+  string global_l8id = 1;
+  string node_id = 2;
+  float longitude = 3;
+  float latitude = 4;
+  string location = 5;
+}
+
+message L8TopologyLink {
+  string link_id = 1;
+  string aside_node_id = 2;
+  string zside_node_id = 3;
+  string aside_property_id = 4;
+  string zside_property_id = 5;
+  bool bi_direction = 6;
+}
