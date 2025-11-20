@@ -25,8 +25,11 @@ type TopoService struct {
 type ITopoDiscovery interface {
 	ServiceName() string
 	ServiceArea() byte
-	Discover(ifs.IElements, *TopoService, ifs.IVNic)
 	Query() string
+	ModelTypeName() string
+	IsConnected(aside, zside interface{}) (bool, bool)
+	ConvertToTopologyNode(elem interface{}) *l8topo.L8TopologyNode
+	IdOf(elem interface{}) string
 }
 
 func (this *TopoService) Activate(sla *ifs.ServiceLevelAgreement, vnic ifs.IVNic) error {
@@ -47,8 +50,7 @@ func (this *TopoService) Activate(sla *ifs.ServiceLevelAgreement, vnic ifs.IVNic
 
 	go func() {
 		time.Sleep(time.Second * 2)
-		resp := vnic.LeaderRequest(this.discovery.ServiceName(), this.discovery.ServiceArea(), ifs.GET, this.discovery.Query(), 30)
-		this.discovery.Discover(resp, this, vnic)
+		this.DiscoverNodes(vnic)
 	}()
 
 	return nil

@@ -1,11 +1,9 @@
 package discover
 
 import (
-	"fmt"
-
 	"github.com/saichler/l8reflect/go/reflect/introspecting"
-	"github.com/saichler/l8srlz/go/serialize/object"
 	"github.com/saichler/l8topology/go/topo/service"
+	"github.com/saichler/l8topology/go/types/l8topo"
 	"github.com/saichler/l8types/go/ifs"
 	"github.com/saichler/probler/go/prob/common"
 	"github.com/saichler/probler/go/types"
@@ -31,18 +29,30 @@ func (this *Layer1) ServiceArea() byte {
 	return common.INVENTORY_AREA_BOX
 }
 
-func (this *Layer1) Discover(elements ifs.IElements, topo *service.TopoService, vnic ifs.IVNic) {
-	fmt.Println("Discovering nodes")
-	deviceList := elements.Element().(*types.NetworkDeviceList)
-	topo.Post(object.New(nil, deviceList.List), vnic)
-	this.discoverLinks(deviceList.List, topo, vnic)
-}
-
-func (this *Layer1) discoverLinks(deviceList []*types.NetworkDevice, topo *service.TopoService, vnic ifs.IVNic) {
-	fmt.Println("Discovering links")
-	discoverLayer1Links(deviceList, vnic, topo)
-}
-
 func (this *Layer1) Query() string {
 	return "select * from NetworkDevice"
+}
+
+func (this *Layer1) ModelTypeName() string {
+	return "Port"
+}
+
+func (this *Layer1) IdOf(elem interface{}) string {
+	device := elem.(*types.NetworkDevice)
+	return device.Id
+}
+
+func (this *Layer1) ConvertToTopologyNode(elem interface{}) *l8topo.L8TopologyNode {
+	node := &l8topo.L8TopologyNode{}
+	device := elem.(*types.NetworkDevice)
+	node.NodeId = device.Id
+	node.GlobalL8Id = device.Id
+	node.Latitude = float32(device.Equipmentinfo.Latitude)
+	node.Longitude = float32(device.Equipmentinfo.Longitude)
+	node.Location = device.Equipmentinfo.Location
+	return node
+}
+
+func (this *Layer1) IsConnected(aside, zside interface{}) (bool, bool) {
+	return true, true
 }
