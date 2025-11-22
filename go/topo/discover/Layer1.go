@@ -1,6 +1,8 @@
 package discover
 
 import (
+	"fmt"
+
 	"github.com/saichler/l8reflect/go/reflect/introspecting"
 	"github.com/saichler/l8topology/go/topo/topo_list"
 	"github.com/saichler/l8topology/go/topo/topo_service"
@@ -58,6 +60,15 @@ func (this *Layer1) ConvertToTopologyNode(elem interface{}) *l8topo.L8TopologyNo
 	node.Latitude = float32(device.Equipmentinfo.Latitude)
 	node.Longitude = float32(device.Equipmentinfo.Longitude)
 	node.Location = device.Equipmentinfo.Location
+	if node.Latitude == 0 || node.Longitude == 0 {
+		log, lat, ok := GetCityCoordinates(node.Location)
+		if !ok {
+			fmt.Println("Error getting log/lat for ", node.Location)
+		} else {
+			node.Latitude = float32(lat)
+			node.Longitude = float32(log)
+		}
+	}
 	return node
 }
 
