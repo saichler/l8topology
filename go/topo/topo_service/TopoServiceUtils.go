@@ -18,6 +18,12 @@ func (this *TopoService) DiscoverNodes(vnic ifs.IVNic) {
 	resp := vnic.LeaderRequest(this.discovery.ServiceName(), this.discovery.ServiceArea(),
 		ifs.GET, query, 30)
 	fmt.Println("Received Response")
+	if resp == nil {
+		fmt.Println("received nil response")
+	} else if resp.Error() != nil {
+		fmt.Println("Received error response ", resp.Error().Error())
+	}
+
 	this.discoverNodes(resp, vnic)
 }
 
@@ -30,7 +36,7 @@ func (this *TopoService) discoverNodes(elements ifs.IElements, vnic ifs.IVNic) {
 	topoNodes := []*l8topo.L8TopologyNode{}
 	fldList := v.FieldByName("List")
 	if !fldList.IsValid() {
-		vnic.Resources().Logger().Error("[DiscoverNodes] Nodes List Element does not contain the List attribute")
+		vnic.Resources().Logger().Error("[DiscoverNodes] Nodes List Element does not contain the List attribute:", v.Type().Name())
 		return
 	}
 
