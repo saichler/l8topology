@@ -52,7 +52,7 @@ func (this *TopoService) Activate(sla *ifs.ServiceLevelAgreement, vnic ifs.IVNic
 	this.links = cache.NewCache(&l8topo.L8TopologyLink{}, nil, nil, vnic.Resources())
 
 	go func() {
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Second * 5)
 		this.DiscoverNodes(vnic)
 	}()
 

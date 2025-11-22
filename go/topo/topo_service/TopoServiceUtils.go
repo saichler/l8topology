@@ -13,8 +13,9 @@ import (
 )
 
 func (this *TopoService) DiscoverNodes(vnic ifs.IVNic) {
+	query := this.discovery.Query() + " limit 500 page 0"
 	resp := vnic.LeaderRequest(this.discovery.ServiceName(), this.discovery.ServiceArea(),
-		ifs.GET, this.discovery.Query(), 30)
+		ifs.GET, query, 30)
 	this.discoverNodes(resp, vnic)
 }
 
