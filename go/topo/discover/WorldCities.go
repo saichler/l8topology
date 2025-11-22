@@ -37,7 +37,9 @@ func loadCities() error {
 	}
 
 	// CSV format: "city","city_ascii","lat","lng","country","iso2","iso3","admin_name","capital","population","id"
-	// Key format: "City, AdminName, Country" (e.g., "Bozova, Şanlıurfa, Turkey")
+	// Supports both key formats:
+	// - "City, AdminName, Country" (e.g., "Bozova, Şanlıurfa, Turkey")
+	// - "City, Country" (e.g., "Bāmyān, Afghanistan")
 	for i, record := range records {
 		if i == 0 {
 			continue // skip header
@@ -49,12 +51,17 @@ func loadCities() error {
 		city := strings.TrimSpace(record[0])
 		country := strings.TrimSpace(record[4])
 		adminName := strings.TrimSpace(record[7])
-		key := city + ", " + adminName + ", " + country
 
 		lat, errLat := strconv.ParseFloat(strings.TrimSpace(record[2]), 64)
 		lon, errLon := strconv.ParseFloat(strings.TrimSpace(record[3]), 64)
 		if errLon == nil && errLat == nil {
-			cityCoordinates[key] = [2]float64{lon, lat}
+			coords := [2]float64{lon, lat}
+			// Add with full format: "City, AdminName, Country"
+			fullKey := city + ", " + adminName + ", " + country
+			cityCoordinates[fullKey] = coords
+			// Add with short format: "City, Country"
+			shortKey := city + ", " + country
+			cityCoordinates[shortKey] = coords
 		}
 	}
 
