@@ -1,4 +1,4 @@
-package service
+package topo_service
 
 import (
 	"errors"
@@ -6,10 +6,13 @@ import (
 	"time"
 
 	"github.com/saichler/l8reflect/go/reflect/introspecting"
+	"github.com/saichler/l8reflect/go/reflect/properties"
 	"github.com/saichler/l8srlz/go/serialize/object"
 	"github.com/saichler/l8topology/go/types/l8topo"
 	"github.com/saichler/l8types/go/ifs"
+	"github.com/saichler/l8types/go/types/l8web"
 	"github.com/saichler/l8utils/go/utils/cache"
+	"github.com/saichler/l8utils/go/utils/web"
 )
 
 type TopoService struct {
@@ -27,7 +30,7 @@ type ITopoDiscovery interface {
 	ServiceArea() byte
 	Query() string
 	ModelTypeName() string
-	IsConnected(aside, zside interface{}) (bool, bool)
+	IsConnected(aside, zside interface{}) (bool, l8topo.L8TopologyLinkDirection)
 	ConvertToTopologyNode(elem interface{}) *l8topo.L8TopologyNode
 	IdOf(elem interface{}) string
 }
@@ -170,6 +173,18 @@ func (this *TopoService) Get(elements ifs.IElements, vnic ifs.IVNic) ifs.IElemen
 	topology.Links = make(map[string]*l8topo.L8TopologyLink)
 	for _, l := range allLinks {
 		link := l.(*l8topo.L8TopologyLink)
+		for _, agg := range link.Aggregated {
+			ap, err := properties.PropertyOf(agg.Aside, vnic.Resources())
+			if err != nil {
+				panic(err)
+			}
+			zp, err := properties.PropertyOf(agg.Zside, vnic.Resources())
+			if err != nil {
+				panic(err)
+			}
+			agg.Aside = ap.PropertyDisplayId()
+			agg.Zside = zp.PropertyDisplayId()
+		}
 		topology.Links[link.LinkId] = link
 	}
 	return object.New(nil, topology)
@@ -184,7 +199,12 @@ func (this *TopoService) TransactionConfig() ifs.ITransactionConfig {
 }
 
 func (this *TopoService) WebService() ifs.IWebService {
-	return nil
+	return web.New(this.serviceName, this.serviceArea,
+		nil, nil,
+		nil, nil,
+		nil, nil,
+		nil, nil,
+		&l8web.L8Empty{}, &l8topo.L8Topology{})
 }
 
 /*

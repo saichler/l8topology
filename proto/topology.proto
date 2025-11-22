@@ -21,11 +21,35 @@ message L8TopologyNode {
   string location = 5;
 }
 
+enum L8topologyLinkDirection {
+  InvalidDirection = 0;
+  AsideToZside = 1;
+  ZsideToAside = 2;
+  Bidirectional = 3;
+}
+
+enum L8TopologyLinkStatus {
+  InvalidStatus = 0;
+  Up = 1;
+  Down = 2;
+  Partial = 3;
+}
+
 message L8TopologyLink {
   string link_id = 1;
-  string aside_node_id = 2;
-  string zside_node_id = 3;
-  string aside_property_id = 4;
-  string zside_property_id = 5;
-  bool bi_direction = 6;
+  string aside = 2;
+  string zside = 3;
+  L8topologyLinkDirection direction = 4;
+  L8TopologyLinkStatus status = 5;
+  map<string, L8TopologyLink> aggregated = 6;
+}
+
+message L8TopologyMetadataList {
+  repeated L8TopologyMetadata list = 1;
+}
+
+message L8TopologyMetadata {
+  string name = 1;
+  string serviceName = 2;
+  int32 serviceArea = 3;
 }

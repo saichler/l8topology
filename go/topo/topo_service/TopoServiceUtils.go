@@ -1,9 +1,10 @@
-package service
+package topo_service
 
 import (
 	"bytes"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/saichler/l8reflect/go/reflect/properties"
 	"github.com/saichler/l8srlz/go/serialize/object"
@@ -56,34 +57,49 @@ func (this *TopoService) discoverLinks(nodes []interface{}, vnic ifs.IVNic) {
 	this.Post(object.New(nil, links), vnic)
 }
 
-func createLink(aSideNodeId, zSideNodeId, asidePropertyId, zsidePropertyId string, biDirection bool) *l8topo.L8TopologyLink {
+func createLink(aside, zside string, direction l8topo.L8TopologyLinkDirection, parent *l8topo.L8TopologyLink) *l8topo.L8TopologyLink {
 	link := &l8topo.L8TopologyLink{}
-	link.AsideNodeId = aSideNodeId
-	link.ZsideNodeId = zSideNodeId
-	link.AsidePropertyId = asidePropertyId
-	link.ZsidePropertyId = zsidePropertyId
-	link.LinkId = createLinkId(asidePropertyId, zsidePropertyId, biDirection)
-	link.BiDirection = biDirection
+	link.LinkId = createLinkId(aside, zside, direction)
+	link.Aside = aside
+	link.Zside = zside
+	link.Direction = direction
+	link.Status = l8topo.L8TopologyLinkStatus_Up
+	if parent != nil {
+		if parent.Aggregated == nil {
+			parent.Aggregated = make(map[string]*l8topo.L8TopologyLink)
+		}
+		parent.Aggregated[link.LinkId] = link
+		if parent.Direction == l8topo.L8TopologyLinkDirection_InvalidDirection {
+			parent.Direction = link.Direction
+		} else if parent.Direction != link.Direction {
+			parent.Direction = l8topo.L8TopologyLinkDirection_Bidirectional
+		}
+	}
 	return link
 }
 
-func createLinkId(aSidePropertyId, zSidePropertyId string, biDirectional bool) string {
+func createLinkId(aSidePropertyId, zSidePropertyId string, direction l8topo.L8TopologyLinkDirection) string {
 	buff := bytes.Buffer{}
 	buff.WriteString(aSidePropertyId)
-	if biDirectional {
-		buff.WriteString("<->")
-	} else {
+	switch direction {
+	case l8topo.L8TopologyLinkDirection_AsideToZside:
 		buff.WriteString("->")
+	case l8topo.L8TopologyLinkDirection_ZsideToAside:
+		buff.WriteString("<-")
+	case l8topo.L8TopologyLinkDirection_Bidirectional:
+		buff.WriteString("<->")
+	default:
+		buff.WriteString("-")
 	}
 	buff.WriteString(zSidePropertyId)
 	return buff.String()
 }
 
 func (this *TopoService) matchLinks(maps map[string]map[string]interface{}) []*l8topo.L8TopologyLink {
-	links := make([]*l8topo.L8TopologyLink, 0)
+	links := make(map[string]*l8topo.L8TopologyLink, 0)
 	alreadyConnected := make(map[string]bool)
 
-	// Flatten the nested map into a list of port entries for more efficient iteration
+	// Flatten the nested map into a topo_list of port entries for more efficient iteration
 	type elemEntry struct {
 		nodeId string
 		elemId string
@@ -125,17 +141,34 @@ func (this *TopoService) matchLinks(maps map[string]map[string]interface{}) []*l
 				continue
 			}
 
-			connected, biDirectional := this.discovery.IsConnected(aSideEntry.elem, zSideEntry.elem)
+			var aside, zside *elemEntry
+			if strings.Compare(aSideEntry.nodeId, zSideEntry.nodeId) < 0 {
+				aside = aSideEntry
+				zside = zSideEntry
+			} else {
+				aside = zSideEntry
+				zside = aSideEntry
+			}
+
+			connected, direction := this.discovery.IsConnected(aside.elem, zside.elem)
 			if connected {
-				alreadyConnected[aSideEntry.elemId] = true
-				alreadyConnected[zSideEntry.elemId] = true
-				newLink := createLink(aSideEntry.nodeId, zSideEntry.nodeId,
-					aSideEntry.nodeId, zSideEntry.nodeId, biDirectional)
-				links = append(links, newLink)
+				aggregatorId := createLinkId(aside.nodeId, zside.nodeId, 0)
+				aggregator, ok := links[aggregatorId]
+				if !ok {
+					aggregator = createLink(aside.nodeId, zside.nodeId, 0, nil)
+					links[aggregatorId] = aggregator
+				}
+				alreadyConnected[aside.elemId] = true
+				alreadyConnected[zside.elemId] = true
+				createLink(aside.elemId, zside.elemId, direction, aggregator)
 				break // A-side port is now matched, move to next A-side port
 			}
 		}
 	}
 
-	return links
+	result := make([]*l8topo.L8TopologyLink, 0)
+	for _, link := range links {
+		result = append(result, link)
+	}
+	return result
 }

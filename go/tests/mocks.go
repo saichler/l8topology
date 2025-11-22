@@ -9,19 +9,36 @@ import (
 func Nodes() *types.NetworkDeviceList {
 	devices := make([]*types.NetworkDevice, 0)
 
-	// Create diverse network devices
-	devices = append(devices, createRouter("R1", "192.168.1.1", 1))
-	devices = append(devices, createRouter("R2", "192.168.1.2", 2))
-	devices = append(devices, createSwitch("SW1", "192.168.2.1", 3))
-	devices = append(devices, createSwitch("SW2", "192.168.2.2", 4))
-	devices = append(devices, createFirewall("FW1", "192.168.3.1", 5))
+	// Create diverse network devices with real world city locations
+	devices = append(devices, createRouter("R1", "192.168.1.1", 1, "Tokyo, Japan", 139.6917, 35.6895))
+	devices = append(devices, createRouter("R2", "192.168.1.2", 2, "New York City, USA", -74.0060, 40.7128))
+	devices = append(devices, createSwitch("SW1", "192.168.2.1", 3, "London, UK", -0.1278, 51.5074))
+	devices = append(devices, createSwitch("SW2", "192.168.2.2", 4, "São Paulo, Brazil", -46.6333, -23.5505))
+	devices = append(devices, createFirewall("FW1", "192.168.3.1", 5, "Mumbai, India", 72.8777, 19.0760))
+
+	// Additional devices across the globe
+	devices = append(devices, createRouter("R3", "192.168.1.3", 6, "Sydney, Australia", 151.2093, -33.8688))
+	devices = append(devices, createRouter("R4", "192.168.1.4", 7, "Paris, France", 2.3522, 48.8566))
+	devices = append(devices, createSwitch("SW3", "192.168.2.3", 8, "Singapore", 103.8198, 1.3521))
+	devices = append(devices, createSwitch("SW4", "192.168.2.4", 9, "Dubai, UAE", 55.2708, 25.2048))
+	devices = append(devices, createFirewall("FW2", "192.168.3.2", 10, "Toronto, Canada", -79.3832, 43.6532))
+	devices = append(devices, createRouter("R5", "192.168.1.5", 11, "Berlin, Germany", 13.4050, 52.5200))
+	devices = append(devices, createRouter("R6", "192.168.1.6", 12, "Moscow, Russia", 37.6173, 55.7558))
+	devices = append(devices, createSwitch("SW5", "192.168.2.5", 13, "Hong Kong", 114.1694, 22.3193))
+	devices = append(devices, createSwitch("SW6", "192.168.2.6", 14, "Amsterdam, Netherlands", 4.9041, 52.3676))
+	devices = append(devices, createFirewall("FW3", "192.168.3.3", 15, "Seoul, South Korea", 126.9780, 37.5665))
+	devices = append(devices, createRouter("R7", "192.168.1.7", 16, "Los Angeles, USA", -118.2437, 34.0522))
+	devices = append(devices, createRouter("R8", "192.168.1.8", 17, "Cape Town, South Africa", 18.4241, -33.9249))
+	devices = append(devices, createSwitch("SW7", "192.168.2.7", 18, "Bangkok, Thailand", 100.5018, 13.7563))
+	devices = append(devices, createSwitch("SW8", "192.168.2.8", 19, "Mexico City, Mexico", -99.1332, 19.4326))
+	devices = append(devices, createFirewall("FW4", "192.168.3.4", 20, "Cairo, Egypt", 31.2357, 30.0444))
 
 	deviceList := &types.NetworkDeviceList{List: devices}
 
 	return deviceList
 }
 
-// createPorts generates a list of ports with interfaces
+// createPorts generates a topo_list of ports with interfaces
 func createPorts(count int, ipAddress string, interfacePrefix string) []*types.Port {
 	ports := make([]*types.Port, count)
 	for i := 0; i < count; i++ {
@@ -36,7 +53,7 @@ func createPorts(count int, ipAddress string, interfacePrefix string) []*types.P
 }
 
 // createRouter creates a router network device with varied physical and logical inventory
-func createRouter(name, ipAddress string, deviceId uint32) *types.NetworkDevice {
+func createRouter(name, ipAddress string, deviceId uint32, location string, longitude, latitude float64) *types.NetworkDevice {
 	return &types.NetworkDevice{
 		Id: name,
 		Equipmentinfo: &types.EquipmentInfo{
@@ -53,9 +70,9 @@ func createRouter(name, ipAddress string, deviceId uint32) *types.NetworkDevice 
 			FirmwareVersion: "7.3.2",
 			IpAddress:       ipAddress,
 			DeviceType:      types.DeviceType_DEVICE_TYPE_ROUTER,
-			Location:        fmt.Sprintf("DataCenter-%d", deviceId),
-			Latitude:        37.7749 + float64(deviceId)*0.1,
-			Longitude:       -122.4194 + float64(deviceId)*0.1,
+			Location:        location,
+			Latitude:        latitude,
+			Longitude:       longitude,
 			DeviceStatus:    types.DeviceStatus_DEVICE_STATUS_ONLINE,
 			LastSeen:        "2025-11-11T10:00:00Z",
 			Uptime:          "45 days, 12 hours",
@@ -145,7 +162,7 @@ func createRouter(name, ipAddress string, deviceId uint32) *types.NetworkDevice 
 }
 
 // createSwitch creates a switch network device with varied physical and logical inventory
-func createSwitch(name, ipAddress string, deviceId uint32) *types.NetworkDevice {
+func createSwitch(name, ipAddress string, deviceId uint32, location string, longitude, latitude float64) *types.NetworkDevice {
 	return &types.NetworkDevice{
 		Id: name,
 		Equipmentinfo: &types.EquipmentInfo{
@@ -162,9 +179,9 @@ func createSwitch(name, ipAddress string, deviceId uint32) *types.NetworkDevice 
 			FirmwareVersion: "20.4R3",
 			IpAddress:       ipAddress,
 			DeviceType:      types.DeviceType_DEVICE_TYPE_SWITCH,
-			Location:        fmt.Sprintf("DataCenter-%d", deviceId),
-			Latitude:        37.7749 + float64(deviceId)*0.1,
-			Longitude:       -122.4194 + float64(deviceId)*0.1,
+			Location:        location,
+			Latitude:        latitude,
+			Longitude:       longitude,
 			DeviceStatus:    types.DeviceStatus_DEVICE_STATUS_ONLINE,
 			LastSeen:        "2025-11-11T10:00:00Z",
 			Uptime:          "30 days, 8 hours",
@@ -232,7 +249,7 @@ func createSwitch(name, ipAddress string, deviceId uint32) *types.NetworkDevice 
 }
 
 // createFirewall creates a firewall network device with varied physical and logical inventory
-func createFirewall(name, ipAddress string, deviceId uint32) *types.NetworkDevice {
+func createFirewall(name, ipAddress string, deviceId uint32, location string, longitude, latitude float64) *types.NetworkDevice {
 	return &types.NetworkDevice{
 		Id: name,
 		Equipmentinfo: &types.EquipmentInfo{
@@ -249,9 +266,9 @@ func createFirewall(name, ipAddress string, deviceId uint32) *types.NetworkDevic
 			FirmwareVersion: "10.2.3",
 			IpAddress:       ipAddress,
 			DeviceType:      types.DeviceType_DEVICE_TYPE_FIREWALL,
-			Location:        fmt.Sprintf("DataCenter-%d", deviceId),
-			Latitude:        37.7749 + float64(deviceId)*0.1,
-			Longitude:       -122.4194 + float64(deviceId)*0.1,
+			Location:        location,
+			Latitude:        latitude,
+			Longitude:       longitude,
 			DeviceStatus:    types.DeviceStatus_DEVICE_STATUS_ONLINE,
 			LastSeen:        "2025-11-11T10:00:00Z",
 			Uptime:          "60 days, 5 hours",
