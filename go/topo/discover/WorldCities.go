@@ -37,17 +37,19 @@ func loadCities() error {
 	}
 
 	// CSV format: "city","city_ascii","lat","lng","country","iso2","iso3","admin_name","capital","population","id"
+	// Key format: "City, AdminName, Country" (e.g., "Bozova, Şanlıurfa, Turkey")
 	for i, record := range records {
 		if i == 0 {
 			continue // skip header
 		}
-		if len(record) < 5 {
+		if len(record) < 8 {
 			continue
 		}
 
 		city := strings.TrimSpace(record[0])
 		country := strings.TrimSpace(record[4])
-		key := city + ", " + country
+		adminName := strings.TrimSpace(record[7])
+		key := city + ", " + adminName + ", " + country
 
 		lat, errLat := strconv.ParseFloat(strings.TrimSpace(record[2]), 64)
 		lon, errLon := strconv.ParseFloat(strings.TrimSpace(record[3]), 64)
