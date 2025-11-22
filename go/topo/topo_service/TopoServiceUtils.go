@@ -32,6 +32,7 @@ func (this *TopoService) discoverNodes(elements ifs.IElements, vnic ifs.IVNic) {
 	topoNodes := []*l8topo.L8TopologyNode{}
 
 	if len(elements.Elements()) > 1 {
+		fmt.Println("Element list size=", len(elements.Elements()))
 		for _, elem := range elements.Elements() {
 			nodes = append(nodes, elem)
 			topoNodes = append(topoNodes, this.discovery.ConvertToTopologyNode(elem))
