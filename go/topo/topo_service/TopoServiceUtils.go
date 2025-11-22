@@ -28,22 +28,32 @@ func (this *TopoService) DiscoverNodes(vnic ifs.IVNic) {
 }
 
 func (this *TopoService) discoverNodes(elements ifs.IElements, vnic ifs.IVNic) {
-	v := reflect.ValueOf(elements.Element())
-	if v.Kind() == reflect.Ptr {
-		v = v.Elem()
-	}
 	nodes := []interface{}{}
 	topoNodes := []*l8topo.L8TopologyNode{}
-	fldList := v.FieldByName("List")
-	if !fldList.IsValid() {
-		vnic.Resources().Logger().Error("[DiscoverNodes] Nodes List Element does not contain the List attribute:", v.Type().Name())
-		return
-	}
 
-	for i := 0; i < fldList.Len(); i++ {
-		item := fldList.Index(i)
-		nodes = append(nodes, item.Interface())
-		topoNodes = append(topoNodes, this.discovery.ConvertToTopologyNode(item.Interface()))
+	if len(elements.Elements()) > 1 {
+		for _, elem := range elements.Elements() {
+			nodes = append(nodes, elem)
+			topoNodes = append(topoNodes, this.discovery.ConvertToTopologyNode(elem))
+		}
+	} else {
+
+		v := reflect.ValueOf(elements.Element())
+		if v.Kind() == reflect.Ptr {
+			v = v.Elem()
+		}
+
+		fldList := v.FieldByName("List")
+		if !fldList.IsValid() {
+			vnic.Resources().Logger().Error("[DiscoverNodes] Nodes List Element does not contain the List attribute:", v.Type().Name())
+			return
+		}
+
+		for i := 0; i < fldList.Len(); i++ {
+			item := fldList.Index(i)
+			nodes = append(nodes, item.Interface())
+			topoNodes = append(topoNodes, this.discovery.ConvertToTopologyNode(item.Interface()))
+		}
 	}
 
 	this.Post(object.New(nil, topoNodes), vnic)
