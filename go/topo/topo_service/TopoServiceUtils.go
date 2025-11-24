@@ -43,7 +43,9 @@ func (this *TopoService) discoverNodes(elements ifs.IElements, vnic ifs.IVNic) {
 		if v.Kind() == reflect.Ptr {
 			v = v.Elem()
 		}
-
+		if !v.IsValid() {
+			return
+		}
 		fldList := v.FieldByName("List")
 		if !fldList.IsValid() {
 			vnic.Resources().Logger().Error("[DiscoverNodes] Nodes List Element does not contain the List attribute:", v.Type().Name())
