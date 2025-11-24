@@ -1,12 +1,12 @@
 package topo_service
 
 import (
+	"bytes"
 	"errors"
 	"sync"
 	"time"
 
 	"github.com/saichler/l8reflect/go/reflect/introspecting"
-	"github.com/saichler/l8reflect/go/reflect/properties"
 	"github.com/saichler/l8srlz/go/serialize/object"
 	"github.com/saichler/l8topology/go/types/l8topo"
 	"github.com/saichler/l8types/go/ifs"
@@ -21,6 +21,7 @@ type TopoService struct {
 	name        string
 	nodes       *cache.Cache
 	links       *cache.Cache
+	locations   *cache.Cache
 	mtx         *sync.RWMutex
 	discovery   ITopoDiscovery
 }
@@ -31,8 +32,9 @@ type ITopoDiscovery interface {
 	Query() string
 	ModelTypeName() string
 	IsConnected(aside, zside interface{}) (bool, l8topo.L8TopologyLinkDirection)
-	ConvertToTopologyNode(elem interface{}) *l8topo.L8TopologyNode
+	ConvertToTopologyNode(elem interface{}) (*l8topo.L8TopologyNode, *l8topo.L8TopologyLocation)
 	IdOf(elem interface{}) string
+	LocationOf(elem interface{}) string
 }
 
 func (this *TopoService) Activate(sla *ifs.ServiceLevelAgreement, vnic ifs.IVNic) error {
@@ -48,8 +50,12 @@ func (this *TopoService) Activate(sla *ifs.ServiceLevelAgreement, vnic ifs.IVNic
 	node, _ = vnic.Resources().Introspector().Inspect(&l8topo.L8TopologyLink{})
 	introspecting.AddPrimaryKeyDecorator(node, "LinkId")
 
+	node, _ = vnic.Resources().Introspector().Inspect(&l8topo.L8TopologyLocation{})
+	introspecting.AddPrimaryKeyDecorator(node, "Location")
+
 	this.nodes = cache.NewCache(&l8topo.L8TopologyNode{}, nil, nil, vnic.Resources())
 	this.links = cache.NewCache(&l8topo.L8TopologyLink{}, nil, nil, vnic.Resources())
+	this.locations = cache.NewCache(&l8topo.L8TopologyLocation{}, nil, nil, vnic.Resources())
 
 	go func() {
 		time.Sleep(time.Second * 5)
@@ -75,10 +81,16 @@ func (this *TopoService) do(action ifs.Action, elements ifs.IElements) error {
 			}
 			continue
 		}
-
 		link, ok := elem.(*l8topo.L8TopologyLink)
 		if ok {
 			err := this.doLinks(action, link)
+			if err != nil {
+				return err
+			}
+		}
+		location, ok := elem.(*l8topo.L8TopologyLocation)
+		if ok {
+			err := this.doLocations(action, location)
 			if err != nil {
 				return err
 			}
@@ -117,6 +129,23 @@ func (this *TopoService) doLinks(action ifs.Action, link *l8topo.L8TopologyLink)
 		_, err = this.links.Patch(link, false)
 	default:
 		return errors.New("unknown action for topology links")
+	}
+	return err
+}
+
+func (this *TopoService) doLocations(action ifs.Action, location *l8topo.L8TopologyLocation) error {
+	var err error
+	switch action {
+	case ifs.POST:
+		_, err = this.locations.Post(location, false)
+	case ifs.PUT:
+		_, err = this.locations.Put(location, false)
+	case ifs.DELETE:
+		_, err = this.locations.Delete(location, false)
+	case ifs.PATCH:
+		_, err = this.locations.Patch(location, false)
+	default:
+		return errors.New("unknown action for topology location")
 	}
 	return err
 }
@@ -164,7 +193,7 @@ func (this *TopoService) Get(elements ifs.IElements, vnic ifs.IVNic) ifs.IElemen
 	topology.Nodes = make(map[string]*l8topo.L8TopologyNode)
 	for _, n := range allNodes {
 		node := n.(*l8topo.L8TopologyNode)
-		topology.Nodes[node.NodeId] = node
+		topology.Nodes[node.Location] = node
 	}
 
 	allLinks := this.links.Collect(func(i interface{}) (bool, interface{}) {
@@ -172,21 +201,33 @@ func (this *TopoService) Get(elements ifs.IElements, vnic ifs.IVNic) ifs.IElemen
 	})
 	topology.Links = make(map[string]*l8topo.L8TopologyLink)
 	for _, l := range allLinks {
-		link := l.(*l8topo.L8TopologyLink)
-		for _, agg := range link.Aggregated {
-			ap, err := properties.PropertyOf(agg.Aside, vnic.Resources())
-			if err != nil {
-				panic(err)
+		topolink := l.(*l8topo.L8TopologyLink)
+		aside := rootIdOf(topolink.Aside)
+		zside := rootIdOf(topolink.Zside)
+		buff := bytes.Buffer{}
+		buff.WriteString(aside)
+		buff.WriteString(zside)
+		viewLink := createLink(aside, zside, topolink.Direction)
+		viewLink.LinkId = buff.String()
+		exist, ok := topology.Links[viewLink.LinkId]
+		if ok {
+			if exist.Direction != topolink.Direction {
+				exist.Direction = l8topo.L8TopologyLinkDirection_Bidirectional
 			}
-			zp, err := properties.PropertyOf(agg.Zside, vnic.Resources())
-			if err != nil {
-				panic(err)
-			}
-			agg.Aside = ap.PropertyDisplayId()
-			agg.Zside = zp.PropertyDisplayId()
+		} else {
+			topology.Links[viewLink.LinkId] = viewLink
 		}
-		topology.Links[link.LinkId] = link
 	}
+
+	allLocations := this.locations.Collect(func(i interface{}) (bool, interface{}) {
+		return true, i
+	})
+	topology.Locations = make(map[string]*l8topo.L8TopologyLocation)
+	for _, l := range allLocations {
+		location := l.(*l8topo.L8TopologyLocation)
+		topology.Locations[location.Location] = location
+	}
+
 	return object.New(nil, topology)
 }
 

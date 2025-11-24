@@ -30,15 +30,17 @@ func (this *TopoService) DiscoverNodes(vnic ifs.IVNic) {
 func (this *TopoService) discoverNodes(elements ifs.IElements, vnic ifs.IVNic) {
 	nodes := []interface{}{}
 	topoNodes := []*l8topo.L8TopologyNode{}
+	topoLocations := map[string]*l8topo.L8TopologyLocation{}
 
 	if len(elements.Elements()) > 1 {
 		fmt.Println("Element list size=", len(elements.Elements()))
 		for _, elem := range elements.Elements() {
 			nodes = append(nodes, elem)
-			topoNodes = append(topoNodes, this.discovery.ConvertToTopologyNode(elem))
+			topoNode, topoLocation := this.discovery.ConvertToTopologyNode(elem)
+			topoNodes = append(topoNodes, topoNode)
+			topoLocations[topoLocation.Location] = topoLocation
 		}
 	} else {
-
 		v := reflect.ValueOf(elements.Element())
 		if v.Kind() == reflect.Ptr {
 			v = v.Elem()
@@ -55,11 +57,14 @@ func (this *TopoService) discoverNodes(elements ifs.IElements, vnic ifs.IVNic) {
 		for i := 0; i < fldList.Len(); i++ {
 			item := fldList.Index(i)
 			nodes = append(nodes, item.Interface())
-			topoNodes = append(topoNodes, this.discovery.ConvertToTopologyNode(item.Interface()))
+			topoNode, topoLocation := this.discovery.ConvertToTopologyNode(item.Interface())
+			topoNodes = append(topoNodes, topoNode)
+			topoLocations[topoLocation.Location] = topoLocation
 		}
 	}
 
 	this.Post(object.New(nil, topoNodes), vnic)
+	this.Post(object.New(nil, topoLocations), vnic)
 	this.discoverLinks(nodes, vnic)
 }
 
@@ -79,25 +84,22 @@ func (this *TopoService) discoverLinks(nodes []interface{}, vnic ifs.IVNic) {
 	this.Post(object.New(nil, links), vnic)
 }
 
-func createLink(aside, zside string, direction l8topo.L8TopologyLinkDirection, parent *l8topo.L8TopologyLink) *l8topo.L8TopologyLink {
+func createLink(aside, zside string, direction l8topo.L8TopologyLinkDirection) *l8topo.L8TopologyLink {
 	link := &l8topo.L8TopologyLink{}
 	link.LinkId = createLinkId(aside, zside, direction)
 	link.Aside = aside
 	link.Zside = zside
 	link.Direction = direction
 	link.Status = l8topo.L8TopologyLinkStatus_Up
-	if parent != nil {
-		if parent.Aggregated == nil {
-			parent.Aggregated = make(map[string]*l8topo.L8TopologyLink)
-		}
-		parent.Aggregated[link.LinkId] = link
-		if parent.Direction == l8topo.L8TopologyLinkDirection_InvalidDirection {
-			parent.Direction = link.Direction
-		} else if parent.Direction != link.Direction {
-			parent.Direction = l8topo.L8TopologyLinkDirection_Bidirectional
-		}
-	}
 	return link
+}
+
+func rootIdOf(side string) string {
+	index1 := strings.Index(side, "<")
+	index2 := strings.Index(side, ">")
+	rootID := side[index1+1 : index2]
+	index3 := strings.LastIndex(rootID, "}")
+	return rootID[index3+1:]
 }
 
 func createLinkId(aSidePropertyId, zSidePropertyId string, direction l8topo.L8TopologyLinkDirection) string {
@@ -118,7 +120,7 @@ func createLinkId(aSidePropertyId, zSidePropertyId string, direction l8topo.L8To
 }
 
 func (this *TopoService) matchLinks(maps map[string]map[string]interface{}) []*l8topo.L8TopologyLink {
-	links := make(map[string]*l8topo.L8TopologyLink, 0)
+	links := make([]*l8topo.L8TopologyLink, 0)
 	alreadyConnected := make(map[string]bool)
 
 	// Flatten the nested map into a topo_list of port entries for more efficient iteration
@@ -174,23 +176,14 @@ func (this *TopoService) matchLinks(maps map[string]map[string]interface{}) []*l
 
 			connected, direction := this.discovery.IsConnected(aside.elem, zside.elem)
 			if connected {
-				aggregatorId := createLinkId(aside.nodeId, zside.nodeId, 0)
-				aggregator, ok := links[aggregatorId]
-				if !ok {
-					aggregator = createLink(aside.nodeId, zside.nodeId, 0, nil)
-					links[aggregatorId] = aggregator
-				}
 				alreadyConnected[aside.elemId] = true
 				alreadyConnected[zside.elemId] = true
-				createLink(aside.elemId, zside.elemId, direction, aggregator)
+				link := createLink(aside.elemId, zside.elemId, direction)
+				links = append(links, link)
 				break // A-side port is now matched, move to next A-side port
 			}
 		}
 	}
 
-	result := make([]*l8topo.L8TopologyLink, 0)
-	for _, link := range links {
-		result = append(result, link)
-	}
-	return result
+	return links
 }

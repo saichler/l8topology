@@ -353,63 +353,77 @@ class TopologyBrowser {
         return {
             name: name,
             nodes: {
-                'node-1': {
-                    globalL8id: 'node-1',
+                'R1': {
                     nodeId: 'R1',
-                    longitude: -122.4194,
-                    latitude: 37.7749,
-                    location: 'San Francisco, USA'
+                    name: 'R1',
+                    location: 'San Francisco, California, USA'
                 },
-                'node-2': {
-                    globalL8id: 'node-2',
+                'R2': {
                     nodeId: 'R2',
-                    longitude: -0.1278,
-                    latitude: 51.5074,
-                    location: 'London, UK'
+                    name: 'R2',
+                    location: 'London, United Kingdom'
                 },
-                'node-3': {
-                    globalL8id: 'node-3',
+                'SW1': {
                     nodeId: 'SW1',
-                    longitude: 139.6917,
-                    latitude: 35.6895,
+                    name: 'SW1',
                     location: 'Tokyo, Japan'
                 },
-                'node-4': {
-                    globalL8id: 'node-4',
+                'FW1': {
                     nodeId: 'FW1',
-                    longitude: -74.0060,
-                    latitude: 40.7128,
-                    location: 'New York, USA'
+                    name: 'FW1',
+                    location: 'New York, New York, USA'
                 }
             },
             links: {
-                'link-1': {
-                    linkId: 'link-1',
-                    aside: 'node-1',
-                    zside: 'node-2',
+                'networkdevice<{24}{24}R1>.physicals<{24}physical-1>.ports<{2}0>->networkdevice<{24}{24}R2>.physicals<{24}physical-1>.ports<{2}0>': {
+                    linkId: 'networkdevice<{24}{24}R1>.physicals<{24}physical-1>.ports<{2}0>->networkdevice<{24}{24}R2>.physicals<{24}physical-1>.ports<{2}0>',
+                    aside: 'networkdevice<{24}{24}R1>.physicals<{24}physical-1>.ports<{2}0>',
+                    zside: 'networkdevice<{24}{24}R2>.physicals<{24}physical-1>.ports<{2}0>',
                     direction: 3,  // Bidirectional
                     status: 1      // Up
                 },
-                'link-2': {
-                    linkId: 'link-2',
-                    aside: 'node-2',
-                    zside: 'node-3',
+                'networkdevice<{24}{24}R2>.physicals<{24}physical-1>.ports<{2}1>->networkdevice<{24}{24}SW1>.physicals<{24}physical-1>.ports<{2}0>': {
+                    linkId: 'networkdevice<{24}{24}R2>.physicals<{24}physical-1>.ports<{2}1>->networkdevice<{24}{24}SW1>.physicals<{24}physical-1>.ports<{2}0>',
+                    aside: 'networkdevice<{24}{24}R2>.physicals<{24}physical-1>.ports<{2}1>',
+                    zside: 'networkdevice<{24}{24}SW1>.physicals<{24}physical-1>.ports<{2}0>',
                     direction: 1,  // AsideToZside
                     status: 1      // Up
                 },
-                'link-3': {
-                    linkId: 'link-3',
-                    aside: 'node-1',
-                    zside: 'node-4',
+                'networkdevice<{24}{24}R1>.physicals<{24}physical-1>.ports<{2}1><-networkdevice<{24}{24}FW1>.physicals<{24}physical-1>.ports<{2}0>': {
+                    linkId: 'networkdevice<{24}{24}R1>.physicals<{24}physical-1>.ports<{2}1><-networkdevice<{24}{24}FW1>.physicals<{24}physical-1>.ports<{2}0>',
+                    aside: 'networkdevice<{24}{24}R1>.physicals<{24}physical-1>.ports<{2}1>',
+                    zside: 'networkdevice<{24}{24}FW1>.physicals<{24}physical-1>.ports<{2}0>',
                     direction: 2,  // ZsideToAside
                     status: 2      // Down
                 },
-                'link-4': {
-                    linkId: 'link-4',
-                    aside: 'node-3',
-                    zside: 'node-4',
+                'networkdevice<{24}{24}SW1>.physicals<{24}physical-1>.ports<{2}1><->networkdevice<{24}{24}FW1>.physicals<{24}physical-1>.ports<{2}1>': {
+                    linkId: 'networkdevice<{24}{24}SW1>.physicals<{24}physical-1>.ports<{2}1><->networkdevice<{24}{24}FW1>.physicals<{24}physical-1>.ports<{2}1>',
+                    aside: 'networkdevice<{24}{24}SW1>.physicals<{24}physical-1>.ports<{2}1>',
+                    zside: 'networkdevice<{24}{24}FW1>.physicals<{24}physical-1>.ports<{2}1>',
                     direction: 3,  // Bidirectional
                     status: 3      // Partial
+                }
+            },
+            locations: {
+                'San Francisco, California, USA': {
+                    location: 'San Francisco, California, USA',
+                    longitude: -122.4194,
+                    latitude: 37.7749
+                },
+                'London, United Kingdom': {
+                    location: 'London, United Kingdom',
+                    longitude: -0.1278,
+                    latitude: 51.5074
+                },
+                'Tokyo, Japan': {
+                    location: 'Tokyo, Japan',
+                    longitude: 139.6917,
+                    latitude: 35.6895
+                },
+                'New York, New York, USA': {
+                    location: 'New York, New York, USA',
+                    longitude: -74.0060,
+                    latitude: 40.7128
                 }
             }
         };
@@ -431,11 +445,13 @@ class TopologyBrowser {
         const infoDiv = document.getElementById('topology-info');
         const nodeCount = Object.keys(this.currentTopology.nodes || {}).length;
         const linkCount = Object.keys(this.currentTopology.links || {}).length;
+        const locationCount = Object.keys(this.currentTopology.locations || {}).length;
 
         nameEl.textContent = this.selectedTopologyName || 'Topology';
         infoDiv.innerHTML = `
             <span class="summary-item"><strong>${this.formatNumber(nodeCount)}</strong> nodes</span>
             <span class="summary-item"><strong>${this.formatNumber(linkCount)}</strong> links</span>
+            <span class="summary-item"><strong>${this.formatNumber(locationCount)}</strong> locations</span>
         `;
     }
 
@@ -443,7 +459,7 @@ class TopologyBrowser {
         const nodesContainer = document.getElementById('nodes-list');
         const nodeCount = document.getElementById('node-count');
         const nodes = this.currentTopology.nodes || {};
-        const allNodes = Object.values(nodes);
+        const allNodes = Object.entries(nodes).map(([nodeId, node]) => ({ ...node, _key: nodeId }));
         const totalCount = allNodes.length;
 
         nodeCount.textContent = this.formatNumber(totalCount);
@@ -458,6 +474,7 @@ class TopologyBrowser {
             if (!this.nodesFilter) return true;
             const filter = this.nodesFilter.toLowerCase();
             return (node.nodeId && node.nodeId.toLowerCase().includes(filter)) ||
+                   (node.name && node.name.toLowerCase().includes(filter)) ||
                    (node.location && node.location.toLowerCase().includes(filter));
         });
 
@@ -481,8 +498,8 @@ class TopologyBrowser {
 
         pageNodes.forEach(node => {
             html += `
-                <div class="node-item" data-node-id="${node.globalL8id}">
-                    <div class="node-item-id">${node.nodeId}</div>
+                <div class="node-item" data-node-id="${node._key}">
+                    <div class="node-item-id">${node.nodeId || node.name}</div>
                     <div class="node-item-location">${node.location || 'N/A'}</div>
                 </div>
             `;
@@ -553,6 +570,7 @@ class TopologyBrowser {
         const linksContainer = document.getElementById('links-list');
         const linkCount = document.getElementById('link-count');
         const links = this.currentTopology.links || {};
+        const nodes = this.currentTopology.nodes || {};
         const allLinks = Object.values(links);
         const totalCount = allLinks.length;
 
@@ -567,8 +585,8 @@ class TopologyBrowser {
         this.filteredLinks = allLinks.filter(link => {
             if (!this.linksFilter) return true;
             const filter = this.linksFilter.toLowerCase();
-            const asideNode = this.currentTopology.nodes[link.aside];
-            const zsideNode = this.currentTopology.nodes[link.zside];
+            const asideNode = this.findNodeByLink(link.aside, nodes);
+            const zsideNode = this.findNodeByLink(link.zside, nodes);
             return (link.linkId && link.linkId.toLowerCase().includes(filter)) ||
                    (asideNode?.nodeId && asideNode.nodeId.toLowerCase().includes(filter)) ||
                    (zsideNode?.nodeId && zsideNode.nodeId.toLowerCase().includes(filter)) ||
@@ -595,15 +613,15 @@ class TopologyBrowser {
         `;
 
         pageLinks.forEach(link => {
-            const asideNode = this.currentTopology.nodes[link.aside];
-            const zsideNode = this.currentTopology.nodes[link.zside];
+            const asideNode = this.findNodeByLink(link.aside, nodes);
+            const zsideNode = this.findNodeByLink(link.zside, nodes);
             const directionSymbol = this.getDirectionSymbol(link.direction);
             const statusClass = this.getStatusClass(link.status);
 
             html += `
                 <div class="link-item" data-link-id="${link.linkId}">
                     <div class="link-item-direction">
-                        ${asideNode?.nodeId || link.aside} ${directionSymbol} ${zsideNode?.nodeId || link.zside}
+                        ${asideNode?.nodeId || this.extractNodeIdFromLink(link.aside)} ${directionSymbol} ${zsideNode?.nodeId || this.extractNodeIdFromLink(link.zside)}
                     </div>
                     <div class="link-item-status ${statusClass}">${this.getStatusText(link.status)}</div>
                 </div>
@@ -627,6 +645,13 @@ class TopologyBrowser {
 
         // Add event listeners
         this.setupLinksListEvents();
+    }
+
+    // Extract node ID from link reference string
+    // Handles both "networkdevice<{24}{24}FW1>..." format and simple "FW1" format
+    extractNodeIdFromLink(linkRef) {
+        const match = linkRef.match(/networkdevice<\{24\}\{24\}(\w+)\>/);
+        return match ? match[1] : linkRef;
     }
 
     setupLinksListEvents() {
@@ -738,31 +763,104 @@ class TopologyBrowser {
 
         const nodes = this.currentTopology.nodes || {};
         const links = this.currentTopology.links || {};
+        const locations = this.currentTopology.locations || {};
 
+        console.log(`[DEBUG] Nodes count: ${Object.keys(nodes).length}`);
+        console.log(`[DEBUG] Links count: ${Object.keys(links).length}`);
+        console.log(`[DEBUG] Locations count: ${Object.keys(locations).length}`);
+
+        // Build node positions from locations map (nodes keyed by nodeId)
         const nodePositions = {};
-        Object.entries(nodes).forEach(([id, node]) => {
-            const pos = this.latLongToXY(node.latitude, node.longitude, worldMapRect, containerRect);
-            nodePositions[id] = pos;
+        Object.entries(nodes).forEach(([locationKey, node], idx) => {
+            const location = locations[node.location];
+            if (idx < 3) {
+                console.log(`[DEBUG] Node ${idx}: key="${locationKey}", nodeId="${node.nodeId}", location="${node.location}"`);
+                console.log(`[DEBUG]   location data:`, location);
+            }
+            if (location) {
+                const pos = this.latLongToXY(location.latitude, location.longitude, worldMapRect, containerRect);
+                nodePositions[node.nodeId] = pos;  // Key by nodeId, not locationKey
+                if (idx < 3) {
+                    console.log(`[DEBUG]   position stored for nodeId="${node.nodeId}":`, pos);
+                }
+            }
         });
+        console.log(`[DEBUG] NodePositions keys:`, Object.keys(nodePositions));
 
-        Object.values(links).forEach(link => {
-            const asidePos = nodePositions[link.aside];
-            const zsidePos = nodePositions[link.zside];
+        // Draw links - find nodes by extracting node ID from aside/zside
+        const linkValues = Object.values(links);
+        console.log(`[DEBUG] Total links to process: ${linkValues.length}`);
 
-            if (asidePos && zsidePos) {
-                this.drawLink(overlaySvg, link, asidePos, zsidePos);
+        let linksDrawn = 0;
+        let linksSkippedNoNode = 0;
+        let linksSkippedNoPos = 0;
+
+        linkValues.forEach((link, idx) => {
+            const asideNode = this.findNodeByLink(link.aside, nodes);
+            const zsideNode = this.findNodeByLink(link.zside, nodes);
+
+            if (idx < 5) {
+                console.log(`[DEBUG] Link ${idx}: aside="${link.aside}", zside="${link.zside}"`);
+                console.log(`[DEBUG]   asideNode:`, asideNode);
+                console.log(`[DEBUG]   zsideNode:`, zsideNode);
+            }
+
+            if (asideNode && zsideNode) {
+                const asidePos = nodePositions[asideNode.nodeId];
+                const zsidePos = nodePositions[zsideNode.nodeId];
+
+                if (idx < 5) {
+                    console.log(`[DEBUG]   asidePos:`, asidePos);
+                    console.log(`[DEBUG]   zsidePos:`, zsidePos);
+                }
+
+                if (asidePos && zsidePos) {
+                    this.drawLink(overlaySvg, link, asidePos, zsidePos);
+                    linksDrawn++;
+                } else {
+                    linksSkippedNoPos++;
+                    if (linksSkippedNoPos <= 3) {
+                        console.log(`[DEBUG] Link skipped - no position: aside="${link.aside}" (pos: ${!!asidePos}), zside="${link.zside}" (pos: ${!!zsidePos})`);
+                    }
+                }
+            } else {
+                linksSkippedNoNode++;
+                if (linksSkippedNoNode <= 3) {
+                    console.log(`[DEBUG] Link skipped - no node: aside="${link.aside}" (found: ${!!asideNode}), zside="${link.zside}" (found: ${!!zsideNode})`);
+                }
             }
         });
 
-        Object.entries(nodes).forEach(([id, node]) => {
-            const pos = nodePositions[id];
+        console.log(`[DEBUG] Links summary: drawn=${linksDrawn}, skippedNoNode=${linksSkippedNoNode}, skippedNoPos=${linksSkippedNoPos}`);
+
+        Object.entries(nodes).forEach(([locationKey, node]) => {
+            const pos = nodePositions[node.nodeId];
             if (pos) {
-                this.drawNode(overlaySvg, node, pos);
+                this.drawNode(overlaySvg, node, pos, locationKey);
             }
         });
 
         // Debug: Draw red dot at 0/0
         this.drawDebugDot(overlaySvg);
+    }
+
+    // Helper to find node from link aside/zside reference
+    findNodeByLink(linkRef, nodes) {
+        // Link references can be:
+        // 1. Full format: "networkdevice<{24}{24}FW1>.physicals..." - extract nodeId from regex
+        // 2. Simple format: "FW1" - use directly as nodeId
+        const match = linkRef.match(/networkdevice<\{24\}\{24\}(\w+)\>/);
+        const nodeIdToFind = match ? match[1] : linkRef;
+
+        // Find node with matching nodeId
+        for (const [locationKey, node] of Object.entries(nodes)) {
+            if (node.nodeId === nodeIdToFind) {
+                return node;
+            }
+        }
+
+        // Fallback: try direct lookup by key
+        return nodes[linkRef];
     }
 
     latLongToXY(lat, lon, mapRect, containerRect) {
@@ -899,10 +997,10 @@ class TopologyBrowser {
         svg.appendChild(line);
     }
 
-    drawNode(svg, node, pos) {
+    drawNode(svg, node, pos, locationKey) {
         const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         group.setAttribute('class', 'node');
-        group.setAttribute('data-node-id', node.globalL8id);
+        group.setAttribute('data-node-id', locationKey);
 
         const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         circle.setAttribute('cx', pos.x);
@@ -912,14 +1010,14 @@ class TopologyBrowser {
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         text.setAttribute('x', pos.x);
         text.setAttribute('y', pos.y - 10);
-        text.textContent = node.nodeId;
+        text.textContent = node.nodeId || node.name;
 
         group.appendChild(circle);
         group.appendChild(text);
         svg.appendChild(group);
 
         group.addEventListener('click', () => {
-            this.showNodeDetails(node.globalL8id);
+            this.showNodeDetails(locationKey);
         });
     }
 
@@ -927,11 +1025,15 @@ class TopologyBrowser {
         const node = this.currentTopology.nodes[nodeId];
         if (!node) return;
 
+        const locations = this.currentTopology.locations || {};
+        const location = locations[node.location];
+        const nodes = this.currentTopology.nodes || {};
+
         const modal = document.getElementById('link-modal');
         const modalTitle = document.getElementById('modal-title');
         const modalBody = document.getElementById('modal-body');
 
-        modalTitle.textContent = node.nodeId;
+        modalTitle.textContent = node.nodeId || node.name;
 
         // Build modal body content
         let html = `
@@ -939,11 +1041,11 @@ class TopologyBrowser {
                 <h4>Node Information</h4>
                 <div class="link-detail-row">
                     <span class="link-detail-label">Node ID</span>
-                    <span class="link-detail-value">${node.nodeId}</span>
+                    <span class="link-detail-value">${node.nodeId || 'N/A'}</span>
                 </div>
                 <div class="link-detail-row">
-                    <span class="link-detail-label">Global L8 ID</span>
-                    <span class="link-detail-value">${node.globalL8id || 'N/A'}</span>
+                    <span class="link-detail-label">Name</span>
+                    <span class="link-detail-value">${node.name || 'N/A'}</span>
                 </div>
                 <div class="link-detail-row">
                     <span class="link-detail-label">Location</span>
@@ -951,19 +1053,21 @@ class TopologyBrowser {
                 </div>
                 <div class="link-detail-row">
                     <span class="link-detail-label">Latitude</span>
-                    <span class="link-detail-value">${node.latitude ?? 'N/A'}</span>
+                    <span class="link-detail-value">${location?.latitude ?? 'N/A'}</span>
                 </div>
                 <div class="link-detail-row">
                     <span class="link-detail-label">Longitude</span>
-                    <span class="link-detail-value">${node.longitude ?? 'N/A'}</span>
+                    <span class="link-detail-value">${location?.longitude ?? 'N/A'}</span>
                 </div>
             </div>
         `;
 
-        // Find connected links
-        const connectedLinks = Object.values(this.currentTopology.links || {}).filter(link =>
-            link.aside === nodeId || link.zside === nodeId
-        );
+        // Find connected links - check if link aside/zside references this node
+        const connectedLinks = Object.values(this.currentTopology.links || {}).filter(link => {
+            const asideNode = this.findNodeByLink(link.aside, nodes);
+            const zsideNode = this.findNodeByLink(link.zside, nodes);
+            return asideNode?.nodeId === node.nodeId || zsideNode?.nodeId === node.nodeId;
+        });
 
         html += `
             <div class="link-detail-section">
@@ -987,10 +1091,10 @@ class TopologyBrowser {
             `;
 
             connectedLinks.forEach(link => {
-                const asideNode = this.currentTopology.nodes[link.aside];
-                const zsideNode = this.currentTopology.nodes[link.zside];
-                const asideName = asideNode?.nodeId || link.aside;
-                const zsideName = zsideNode?.nodeId || link.zside;
+                const asideNode = this.findNodeByLink(link.aside, nodes);
+                const zsideNode = this.findNodeByLink(link.zside, nodes);
+                const asideName = asideNode?.nodeId || this.extractNodeIdFromLink(link.aside);
+                const zsideName = zsideNode?.nodeId || this.extractNodeIdFromLink(link.zside);
 
                 html += `
                     <tr>
@@ -1062,16 +1166,17 @@ class TopologyBrowser {
         const link = this.currentTopology.links[linkId];
         if (!link) return;
 
-        const asideNode = this.currentTopology.nodes[link.aside];
-        const zsideNode = this.currentTopology.nodes[link.zside];
+        const nodes = this.currentTopology.nodes || {};
+        const asideNode = this.findNodeByLink(link.aside, nodes);
+        const zsideNode = this.findNodeByLink(link.zside, nodes);
 
         const modal = document.getElementById('link-modal');
         const modalTitle = document.getElementById('modal-title');
         const modalBody = document.getElementById('modal-body');
 
         // Build the connection string for title
-        const asideName = asideNode?.nodeId || link.aside;
-        const zsideName = zsideNode?.nodeId || link.zside;
+        const asideName = asideNode?.nodeId || this.extractNodeIdFromLink(link.aside);
+        const zsideName = zsideNode?.nodeId || this.extractNodeIdFromLink(link.zside);
         const dirSymbol = this.getDirectionSymbol(link.direction);
         modalTitle.textContent = `${asideName} ${dirSymbol} ${zsideName}`;
 
@@ -1081,15 +1186,23 @@ class TopologyBrowser {
                 <h4>Link Information</h4>
                 <div class="link-detail-row">
                     <span class="link-detail-label">Link ID</span>
-                    <span class="link-detail-value">${link.linkId}</span>
+                    <span class="link-detail-value" style="word-break: break-all;">${link.linkId}</span>
                 </div>
                 <div class="link-detail-row">
-                    <span class="link-detail-label">A-Side</span>
+                    <span class="link-detail-label">A-Side Node</span>
                     <span class="link-detail-value">${asideName}${asideNode?.location ? ` (${asideNode.location})` : ''}</span>
                 </div>
                 <div class="link-detail-row">
-                    <span class="link-detail-label">Z-Side</span>
+                    <span class="link-detail-label">A-Side Port</span>
+                    <span class="link-detail-value" style="word-break: break-all;">${link.aside}</span>
+                </div>
+                <div class="link-detail-row">
+                    <span class="link-detail-label">Z-Side Node</span>
                     <span class="link-detail-value">${zsideName}${zsideNode?.location ? ` (${zsideNode.location})` : ''}</span>
+                </div>
+                <div class="link-detail-row">
+                    <span class="link-detail-label">Z-Side Port</span>
+                    <span class="link-detail-value" style="word-break: break-all;">${link.zside}</span>
                 </div>
                 <div class="link-detail-row">
                     <span class="link-detail-label">Direction</span>
@@ -1102,55 +1215,6 @@ class TopologyBrowser {
             </div>
         `;
 
-        // Add aggregated links section
-        const aggregated = link.aggregated || {};
-        const aggregatedKeys = Object.keys(aggregated);
-
-        html += `
-            <div class="link-detail-section">
-                <h4>Aggregated Links (${aggregatedKeys.length})</h4>
-        `;
-
-        if (aggregatedKeys.length === 0) {
-            html += '<p class="no-aggregated">No aggregated links</p>';
-        } else {
-            html += `
-                <table class="aggregated-table">
-                    <thead>
-                        <tr>
-                            <th>A-Side</th>
-                            <th>Z-Side</th>
-                            <th>Direction</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            aggregatedKeys.forEach(key => {
-                const aggLink = aggregated[key];
-                const aggAsideNode = this.currentTopology.nodes[aggLink.aside];
-                const aggZsideNode = this.currentTopology.nodes[aggLink.zside];
-                const aggAsideName = aggAsideNode?.nodeId || aggLink.aside;
-                const aggZsideName = aggZsideNode?.nodeId || aggLink.zside;
-
-                html += `
-                    <tr>
-                        <td>${aggAsideName}</td>
-                        <td>${aggZsideName}</td>
-                        <td>${this.getDirectionSymbol(aggLink.direction)}</td>
-                        <td class="${this.getStatusClass(aggLink.status)}">${this.getStatusText(aggLink.status)}</td>
-                    </tr>
-                `;
-            });
-
-            html += `
-                    </tbody>
-                </table>
-            `;
-        }
-
-        html += '</div>';
         modalBody.innerHTML = html;
 
         // Show modal

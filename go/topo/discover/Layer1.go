@@ -52,24 +52,33 @@ func (this *Layer1) IdOf(elem interface{}) string {
 	return device.Id
 }
 
-func (this *Layer1) ConvertToTopologyNode(elem interface{}) *l8topo.L8TopologyNode {
+func (this *Layer1) LocationOf(elem interface{}) string {
+	device := elem.(*types.NetworkDevice)
+	return device.Equipmentinfo.Location
+}
+
+func (this *Layer1) ConvertToTopologyNode(elem interface{}) (*l8topo.L8TopologyNode, *l8topo.L8TopologyLocation) {
 	node := &l8topo.L8TopologyNode{}
 	device := elem.(*types.NetworkDevice)
-	node.NodeId = device.Id
-	node.GlobalL8Id = device.Id
-	node.Latitude = float32(device.Equipmentinfo.Latitude)
-	node.Longitude = float32(device.Equipmentinfo.Longitude)
 	node.Location = device.Equipmentinfo.Location
-	if node.Latitude == 0 || node.Longitude == 0 {
+	node.NodeId = device.Id
+	node.Name = device.Equipmentinfo.SysName
+
+	location := &l8topo.L8TopologyLocation{}
+	location.Location = node.Location
+	location.Latitude = float32(device.Equipmentinfo.Latitude)
+	location.Longitude = float32(device.Equipmentinfo.Longitude)
+
+	if location.Latitude == 0 || location.Longitude == 0 {
 		log, lat, ok := GetCityCoordinates(node.Location)
 		if !ok {
 			fmt.Println("Error getting log/lat for ", node.Location)
 		} else {
-			node.Latitude = float32(lat)
-			node.Longitude = float32(log)
+			location.Latitude = float32(lat)
+			location.Longitude = float32(log)
 		}
 	}
-	return node
+	return node, location
 }
 
 func (this *Layer1) IsConnected(aside, zside interface{}) (bool, l8topo.L8TopologyLinkDirection) {

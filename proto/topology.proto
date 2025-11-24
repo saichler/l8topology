@@ -9,16 +9,24 @@ option go_package = "./types/l8topo";
 
 message L8Topology {
   string name = 1;
-  map<string, L8TopologyNode> nodes = 2;
-  map<string, L8TopologyLink> links = 3;
+  string agg = 2;
+  map<string, L8TopologyNode> nodes = 3;
+  map<string, L8TopologyLink> links = 4;
+  map<string, L8TopologyLocation> locations = 5;
 }
 
 message L8TopologyNode {
-  string global_l8id = 1;
-  string node_id = 2;
-  float longitude = 3;
-  float latitude = 4;
-  string location = 5;
+  string node_id = 1;
+  string name = 2;
+  string location = 3;
+}
+
+message L8TopologyLocation {
+  string location = 1;
+  float longitude = 2;
+  float latitude = 3;
+  float x = 4;
+  float y = 5;
 }
 
 enum L8topologyLinkDirection {
@@ -41,7 +49,6 @@ message L8TopologyLink {
   string zside = 3;
   L8topologyLinkDirection direction = 4;
   L8TopologyLinkStatus status = 5;
-  map<string, L8TopologyLink> aggregated = 6;
 }
 
 message L8TopologyMetadataList {
