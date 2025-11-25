@@ -87,10 +87,14 @@ TopologyBrowser.prototype.loadTopology = async function(name) {
 };
 
 TopologyBrowser.prototype.topologyNameToEndpoint = function(name, metadata, canvasSelection) {
-    // Build body with canvas selection if available
+    // Map layout mode to layout enum value
+    // 0=Location, 1=Hierarchical, 2=Circular, 3=Radial, 4=Force_Directed
+    const layoutMap = { 'map': 0, 'hierarchical': 1, 'circular': 2, 'radial': 3, 'force': 4 };
+    const layout = layoutMap[this.layoutMode] || 0;
+
+    // Build body with layout and canvas selection if available
     const bodyObj = {
-        aggLevel: 0,
-        aggValue: "Location",
+        layout: layout,
         x: canvasSelection ? canvasSelection.x : 0,
         y: canvasSelection ? canvasSelection.y : 0,
         x1: canvasSelection ? canvasSelection.x1 : 0,

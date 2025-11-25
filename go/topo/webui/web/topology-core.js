@@ -51,6 +51,9 @@ class TopologyBrowser {
         this.selectionStartY = 0;
         this.canvasSelection = null; // {x, y, x1, y1} in SVG coordinates
 
+        // Layout mode: 'map' or 'hierarchical'
+        this.layoutMode = 'map';
+
         this.init();
     }
 
@@ -90,6 +93,10 @@ class TopologyBrowser {
         zoomInBtn.addEventListener('click', () => this.zoomIn());
         zoomOutBtn.addEventListener('click', () => this.zoomOut());
         zoomResetBtn.addEventListener('click', () => this.resetZoom());
+
+        // Layout select dropdown
+        const layoutSelect = document.getElementById('layout-select');
+        layoutSelect.addEventListener('change', (e) => this.setLayout(e.target.value));
 
         // Mouse wheel zoom
         mapContainer.addEventListener('wheel', (e) => {
@@ -493,5 +500,33 @@ class TopologyBrowser {
             selectionRect.style.display = 'none';
         }
         this.setStatus('Canvas selection cleared');
+    }
+
+    setLayout(layout) {
+        const worldMap = document.getElementById('world-map');
+
+        this.layoutMode = layout;
+
+        // Show/hide world map based on layout
+        if (layout === 'map') {
+            worldMap.style.display = 'block';
+        } else {
+            worldMap.style.display = 'none';
+        }
+
+        // Reset zoom/pan when switching layouts
+        this.zoom = 1;
+        this.panX = 0;
+        this.panY = 0;
+        this.applyZoom();
+
+        // Reload topology from server with new layout (retain canvas selection if any)
+        if (this.selectedTopologyName) {
+            if (this.canvasSelection) {
+                this.loadTopologyWithCanvas(this.selectedTopologyName);
+            } else {
+                this.loadTopology(this.selectedTopologyName);
+            }
+        }
     }
 }

@@ -63,10 +63,32 @@ func (this *Layer1) ConvertToTopologyNode(elem interface{}) (*l8topo.L8TopologyN
 	node.Location = device.Equipmentinfo.Location
 	node.NodeId = device.Id
 	node.Name = device.Equipmentinfo.SysName
-
+	node.Type = this.NodeType(device)
 	location := createLocation(node.Location, float32(device.Equipmentinfo.Latitude), float32(device.Equipmentinfo.Longitude))
-
 	return node, location
+}
+
+func (this *Layer1) NodeType(elem interface{}) l8topo.L8TopologyNodeType {
+	device := elem.(*types.NetworkDevice)
+	switch device.Equipmentinfo.DeviceType {
+	case types.DeviceType_DEVICE_TYPE_ROUTER:
+		return l8topo.L8TopologyNodeType_ROUTER
+	case types.DeviceType_DEVICE_TYPE_SWITCH:
+		return l8topo.L8TopologyNodeType_SWITCH
+	case types.DeviceType_DEVICE_TYPE_FIREWALL:
+		return l8topo.L8TopologyNodeType_FIREWALL
+	case types.DeviceType_DEVICE_TYPE_LOAD_BALANCER:
+		return l8topo.L8TopologyNodeType_LOAD_BALANCER
+	case types.DeviceType_DEVICE_TYPE_ACCESS_POINT:
+		return l8topo.L8TopologyNodeType_ACCESS_POINT
+	case types.DeviceType_DEVICE_TYPE_SERVER:
+		return l8topo.L8TopologyNodeType_SERVER
+	case types.DeviceType_DEVICE_TYPE_STORAGE:
+		return l8topo.L8TopologyNodeType_STORAGE
+	case types.DeviceType_DEVICE_TYPE_GATEWAY:
+		return l8topo.L8TopologyNodeType_GATEWAY
+	}
+	return l8topo.L8TopologyNodeType_Generic
 }
 
 func createLocation(nodeLocation string, latitude, longitude float32) *l8topo.L8TopologyLocation {

@@ -26,13 +26,20 @@ func (this *TopoService) createViewNode(node *l8topo.L8TopologyNode, tq *l8topo.
 			return nil, nil, ""
 		}
 	}
-
 	viewNode := &l8topo.L8TopologyNode{}
-	viewNode.NodeId = node.Location
-	viewNode.Name = node.Location
-	viewNode.Location = node.Location
+	if tq.Layout == l8topo.L8TopologyLayout_Location {
+		viewNode.NodeId = node.Location
+		viewNode.Name = node.Location
+		viewNode.Location = node.Location
+	} else {
+		viewNode.NodeId = node.NodeId
+		viewNode.Name = node.Name
+		viewNode.Location = node.NodeId
+		nodeLocation = &l8topo.L8TopologyLocation{}
+		nodeLocation.Location = node.NodeId
+	}
+	viewNode.Type = node.Type
 	nodeIds[node.NodeId] = true
-
 	return viewNode, nodeLocation, viewNode.Location
 }
 
@@ -52,6 +59,7 @@ func (this *TopoService) collectNodes(topology *l8topo.L8Topology, tq *l8topo.L8
 				viewNode.Count = 1
 			} else {
 				exist.Count += 1
+				exist.Type = l8topo.L8TopologyNodeType_NETWORK_AGGREGATION
 			}
 			topology.Locations[viewLocation.Location] = viewLocation
 		}
@@ -71,8 +79,12 @@ func (this *TopoService) collectLinks(topology *l8topo.L8Topology, tq *l8topo.L8
 		if aside == "" || zside == "" {
 			continue
 		}
-		laside := this.locationOf(aside)
-		lzside := this.locationOf(zside)
+		laside := aside
+		lzside := zside
+		if tq.Layout == l8topo.L8TopologyLayout_Location {
+			laside = this.locationOf(aside)
+			lzside = this.locationOf(zside)
+		}
 		// the nodes have the same location
 		if laside == lzside {
 			continue
@@ -99,5 +111,17 @@ func (this *TopoService) Get(elements ifs.IElements, vnic ifs.IVNic) ifs.IElemen
 	nodeIds := make(map[string]bool)
 	this.collectNodes(topology, tq, nodeIds)
 	this.collectLinks(topology, tq, nodeIds)
+	if tq.Layout != l8topo.L8TopologyLayout_Location {
+		switch tq.Layout {
+		case l8topo.L8TopologyLayout_Hierarchical:
+			Radial(topology)
+		case l8topo.L8TopologyLayout_Circular:
+			Circular(topology)
+		case l8topo.L8TopologyLayout_Radial:
+			Radial(topology)
+		case l8topo.L8TopologyLayout_Force_Directed:
+			Force_Directed(topology)
+		}
+	}
 	return object.New(nil, topology)
 }

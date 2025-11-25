@@ -262,6 +262,35 @@ main {
     letter-spacing: 0.5px;
 }
 
+#layout-select {
+    padding: 6px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: white;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-family: 'Roboto Mono', monospace;
+    transition: all 0.3s ease;
+}
+
+#layout-select:hover,
+#layout-select:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: var(--shadow-glow);
+}
+
+.control-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--border-light);
+    margin: 0 4px;
+}
+
 #zoom-level {
     font-size: 11px;
     min-width: 45px;
@@ -338,6 +367,17 @@ main {
     pointer-events: none;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+}
+
+.node .node-icon {
+    pointer-events: none;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    transition: transform 0.2s ease;
+}
+
+.node:hover .node-icon {
+    transform: scale(1.1);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
 }
 
 /* ============================================ */

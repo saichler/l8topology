@@ -7,13 +7,20 @@ option java_outer_classname = "L8Topo";
 option java_package = "com.types.l8topo";
 option go_package = "./types/l8topo";
 
+enum L8TopologyLayout {
+  Location = 0;
+  Hierarchical = 1;
+  Circular = 2;
+  Radial = 3;
+  Force_Directed = 4;
+}
+
 message L8TopologyQuery {
-  int32 agg_level = 1;
-  string agg_value = 2;
-  float x = 3;
-  float y = 4;
-  float x1 = 5;
-  float y1 = 6;
+  L8TopologyLayout layout = 1;
+  float x = 2;
+  float y = 3;
+  float x1 = 4;
+  float y1 = 5;
 }
 
 message L8Topology {
@@ -23,11 +30,25 @@ message L8Topology {
   map<string, L8TopologyLocation> locations = 4;
 }
 
+enum L8TopologyNodeType {
+  Generic = 0;
+  SWITCH = 1;
+  ROUTER = 2;
+  NETWORK_AGGREGATION = 3;
+  FIREWALL = 4;
+  LOAD_BALANCER = 5;
+  ACCESS_POINT = 6;
+  SERVER = 7;
+  STORAGE = 8;
+  GATEWAY = 9;
+}
+
 message L8TopologyNode {
   string node_id = 1;
   string name = 2;
   string location = 3;
   int32 count = 4;
+  L8TopologyNodeType type = 5;
 }
 
 message L8TopologyLocation {

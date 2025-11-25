@@ -31,6 +31,7 @@ type ITopoDiscovery interface {
 	ConvertToTopologyNode(elem interface{}) (*l8topo.L8TopologyNode, *l8topo.L8TopologyLocation)
 	IdOf(elem interface{}) string
 	LocationOf(elem interface{}) string
+	NodeType(elem interface{}) l8topo.L8TopologyNodeType
 }
 
 func (this *TopoService) Activate(sla *ifs.ServiceLevelAgreement, vnic ifs.IVNic) error {
