@@ -38,12 +38,18 @@ class TopologyBrowser {
         // Zoom and pan state
         this.zoom = 1;
         this.minZoom = 0.5;
-        this.maxZoom = 5;
+        this.maxZoom = 10;
         this.panX = 0;
         this.panY = 0;
         this.isPanning = false;
         this.lastMouseX = 0;
         this.lastMouseY = 0;
+
+        // Canvas selection state
+        this.isSelecting = false;
+        this.selectionStartX = 0;
+        this.selectionStartY = 0;
+        this.canvasSelection = null; // {x, y, x1, y1} in SVG coordinates
 
         this.init();
     }
@@ -95,9 +101,18 @@ class TopologyBrowser {
             }
         });
 
-        // Panning (drag to move)
+        // Panning (drag to move) or canvas selection (Shift+drag)
         mapContainer.addEventListener('mousedown', (e) => {
-            if (this.zoom > 1) {
+            if (e.shiftKey) {
+                // Start canvas selection
+                this.isSelecting = true;
+                const rect = mapContainer.getBoundingClientRect();
+                this.selectionStartX = e.clientX - rect.left;
+                this.selectionStartY = e.clientY - rect.top;
+                this.createSelectionRectangle();
+                mapContainer.style.cursor = 'crosshair';
+                e.preventDefault();
+            } else if (this.zoom > 1) {
                 this.isPanning = true;
                 this.lastMouseX = e.clientX;
                 this.lastMouseY = e.clientY;
@@ -107,7 +122,12 @@ class TopologyBrowser {
         });
 
         document.addEventListener('mousemove', (e) => {
-            if (this.isPanning) {
+            if (this.isSelecting) {
+                const rect = mapContainer.getBoundingClientRect();
+                const currentX = e.clientX - rect.left;
+                const currentY = e.clientY - rect.top;
+                this.updateSelectionRectangle(currentX, currentY);
+            } else if (this.isPanning) {
                 const deltaX = (e.clientX - this.lastMouseX) / this.zoom;
                 const deltaY = (e.clientY - this.lastMouseY) / this.zoom;
                 this.panX += deltaX;
@@ -118,8 +138,15 @@ class TopologyBrowser {
             }
         });
 
-        document.addEventListener('mouseup', () => {
-            if (this.isPanning) {
+        document.addEventListener('mouseup', (e) => {
+            if (this.isSelecting) {
+                this.isSelecting = false;
+                const rect = mapContainer.getBoundingClientRect();
+                const endX = e.clientX - rect.left;
+                const endY = e.clientY - rect.top;
+                this.finalizeCanvasSelection(endX, endY);
+                mapContainer.style.cursor = 'default';
+            } else if (this.isPanning) {
                 this.isPanning = false;
                 mapContainer.style.cursor = this.zoom > 1 ? 'grab' : 'default';
             }
@@ -134,6 +161,13 @@ class TopologyBrowser {
                 this.renderMap();
             }
         });
+
+        // Handle case where image is already loaded (cached)
+        if (worldMap.complete) {
+            this.mapWidth = 2000;
+            this.mapHeight = 857;
+            this.syncOverlayWithMap();
+        }
 
         // Sync overlay when window resizes
         window.addEventListener('resize', () => {
@@ -209,6 +243,14 @@ class TopologyBrowser {
         this.panX = 0;
         this.panY = 0;
         this.applyZoom();
+
+        // Clear canvas selection and re-fetch topology with default coordinates
+        if (this.canvasSelection) {
+            this.canvasSelection = null;
+            if (this.selectedTopologyName) {
+                this.loadTopology(this.selectedTopologyName);
+            }
+        }
     }
 
     applyZoom() {
@@ -261,5 +303,195 @@ class TopologyBrowser {
         this.linksFilter = '';
         this.filteredNodes = [];
         this.filteredLinks = [];
+    }
+
+    // Canvas selection methods
+    createSelectionRectangle() {
+        const mapContainer = document.getElementById('map-container');
+        let selectionRect = document.getElementById('canvas-selection-rect');
+        if (!selectionRect) {
+            selectionRect = document.createElement('div');
+            selectionRect.id = 'canvas-selection-rect';
+            mapContainer.appendChild(selectionRect);
+        }
+        selectionRect.style.left = this.selectionStartX + 'px';
+        selectionRect.style.top = this.selectionStartY + 'px';
+        selectionRect.style.width = '0px';
+        selectionRect.style.height = '0px';
+        selectionRect.style.display = 'block';
+    }
+
+    updateSelectionRectangle(currentX, currentY) {
+        const selectionRect = document.getElementById('canvas-selection-rect');
+        if (!selectionRect) return;
+
+        const x = Math.min(this.selectionStartX, currentX);
+        const y = Math.min(this.selectionStartY, currentY);
+        const width = Math.abs(currentX - this.selectionStartX);
+        const height = Math.abs(currentY - this.selectionStartY);
+
+        selectionRect.style.left = x + 'px';
+        selectionRect.style.top = y + 'px';
+        selectionRect.style.width = width + 'px';
+        selectionRect.style.height = height + 'px';
+    }
+
+    finalizeCanvasSelection(endX, endY) {
+        const selectionRect = document.getElementById('canvas-selection-rect');
+        if (selectionRect) {
+            selectionRect.style.display = 'none';
+        }
+
+        // Only process if we have a meaningful selection (at least 10px in each direction)
+        const width = Math.abs(endX - this.selectionStartX);
+        const height = Math.abs(endY - this.selectionStartY);
+        if (width < 10 || height < 10) {
+            this.setStatus('Selection too small, please drag a larger area');
+            return;
+        }
+
+        // Convert screen coordinates to SVG coordinates
+        const svgCoords = this.screenToSvgCoordinates(
+            Math.min(this.selectionStartX, endX),
+            Math.min(this.selectionStartY, endY),
+            Math.max(this.selectionStartX, endX),
+            Math.max(this.selectionStartY, endY)
+        );
+
+        if (svgCoords) {
+            this.canvasSelection = svgCoords;
+            this.setStatus(`Canvas selected: (${Math.round(svgCoords.x)}, ${Math.round(svgCoords.y)}) to (${Math.round(svgCoords.x1)}, ${Math.round(svgCoords.y1)})`);
+
+            // Zoom into the selected canvas area
+            this.zoomToCanvas(svgCoords);
+
+            // Re-fetch topology with the new canvas selection
+            if (this.selectedTopologyName) {
+                this.loadTopologyWithCanvas(this.selectedTopologyName);
+            }
+        }
+    }
+
+    zoomToCanvas(svgCoords) {
+        const worldMap = document.getElementById('world-map');
+        const mapContainer = document.getElementById('map-container');
+        if (!worldMap || !mapContainer) return;
+
+        const containerRect = mapContainer.getBoundingClientRect();
+
+        // Calculate the base (unzoomed) map display size
+        const containerAspect = containerRect.width / containerRect.height;
+        const mapAspect = this.mapWidth / this.mapHeight;
+
+        let baseMapWidth, baseMapHeight, baseMapOffsetX, baseMapOffsetY;
+        if (containerAspect > mapAspect) {
+            baseMapHeight = containerRect.height;
+            baseMapWidth = baseMapHeight * mapAspect;
+            baseMapOffsetX = (containerRect.width - baseMapWidth) / 2;
+            baseMapOffsetY = 0;
+        } else {
+            baseMapWidth = containerRect.width;
+            baseMapHeight = baseMapWidth / mapAspect;
+            baseMapOffsetX = 0;
+            baseMapOffsetY = (containerRect.height - baseMapHeight) / 2;
+        }
+
+        // Calculate the size of the selected area in SVG coordinates
+        const selectionWidth = svgCoords.x1 - svgCoords.x;
+        const selectionHeight = svgCoords.y1 - svgCoords.y;
+
+        // Calculate zoom level to fit the selection in the view
+        const zoomX = this.mapWidth / selectionWidth;
+        const zoomY = this.mapHeight / selectionHeight;
+        const newZoom = Math.min(zoomX, zoomY, this.maxZoom) * 0.9; // 0.9 for some padding
+
+        // Calculate the center of the selection in SVG coordinates
+        const targetSvgX = (svgCoords.x + svgCoords.x1) / 2;
+        const targetSvgY = (svgCoords.y + svgCoords.y1) / 2;
+
+        // Convert target SVG coords to image coords (relative to image top-left)
+        const baseScaleX = this.mapWidth / baseMapWidth;
+        const targetImageX = targetSvgX / baseScaleX;
+        const targetImageY = targetSvgY / baseScaleX;  // Use same scale for both
+
+        // Image center (transform origin)
+        const imageCenterX = baseMapWidth / 2;
+        const imageCenterY = baseMapHeight / 2;
+
+        // Calculate pan to center the target point
+        // CSS transform: scale(zoom) translate(panX, panY) applies translate FIRST (right-to-left)
+        // So pan is NOT multiplied by zoom
+        this.panX = imageCenterX - targetImageX;
+        this.panY = imageCenterY - targetImageY;
+        this.zoom = newZoom;
+
+        this.applyZoom();
+    }
+
+    screenToSvgCoordinates(screenX, screenY, screenX1, screenY1) {
+        const worldMap = document.getElementById('world-map');
+        const mapContainer = document.getElementById('map-container');
+        if (!worldMap || !mapContainer) return null;
+
+        const containerRect = mapContainer.getBoundingClientRect();
+
+        // Calculate the base (unzoomed) map display size and position
+        const containerAspect = containerRect.width / containerRect.height;
+        const mapAspect = this.mapWidth / this.mapHeight;
+
+        let baseMapWidth, baseMapHeight, baseMapOffsetX, baseMapOffsetY;
+        if (containerAspect > mapAspect) {
+            baseMapHeight = containerRect.height;
+            baseMapWidth = baseMapHeight * mapAspect;
+            baseMapOffsetX = (containerRect.width - baseMapWidth) / 2;
+            baseMapOffsetY = 0;
+        } else {
+            baseMapWidth = containerRect.width;
+            baseMapHeight = baseMapWidth / mapAspect;
+            baseMapOffsetX = 0;
+            baseMapOffsetY = (containerRect.height - baseMapHeight) / 2;
+        }
+
+        const baseScaleX = this.mapWidth / baseMapWidth;
+        const baseScaleY = this.mapHeight / baseMapHeight;
+
+        // Image center in container coords (transform origin)
+        const imageCenterInContainerX = baseMapOffsetX + baseMapWidth / 2;
+        const imageCenterInContainerY = baseMapOffsetY + baseMapHeight / 2;
+
+        // Convert screen point to SVG coordinates
+        // CSS transform: scale(zoom) translate(panX, panY) - reverse: unscale first, then untranslate
+        const convertPoint = (sx, sy) => {
+            const relX = sx - imageCenterInContainerX;
+            const relY = sy - imageCenterInContainerY;
+            const unscaledX = relX / this.zoom;
+            const unscaledY = relY / this.zoom;
+            const unpannedX = unscaledX - this.panX;
+            const unpannedY = unscaledY - this.panY;
+            const imageX = unpannedX + baseMapWidth / 2;
+            const imageY = unpannedY + baseMapHeight / 2;
+            const svgX = imageX * baseScaleX;
+            const svgY = imageY * baseScaleY;
+            return { x: svgX, y: svgY };
+        };
+
+        const p1 = convertPoint(screenX, screenY);
+        const p2 = convertPoint(screenX1, screenY1);
+
+        return {
+            x: Math.max(0, p1.x),
+            y: Math.max(0, p1.y),
+            x1: Math.min(this.mapWidth, p2.x),
+            y1: Math.min(this.mapHeight, p2.y)
+        };
+    }
+
+    clearCanvasSelection() {
+        this.canvasSelection = null;
+        const selectionRect = document.getElementById('canvas-selection-rect');
+        if (selectionRect) {
+            selectionRect.style.display = 'none';
+        }
+        this.setStatus('Canvas selection cleared');
     }
 }

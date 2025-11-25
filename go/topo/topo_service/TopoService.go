@@ -1,16 +1,13 @@
 package topo_service
 
 import (
-	"bytes"
 	"errors"
-	"sync"
 	"time"
 
 	"github.com/saichler/l8reflect/go/reflect/introspecting"
 	"github.com/saichler/l8srlz/go/serialize/object"
 	"github.com/saichler/l8topology/go/types/l8topo"
 	"github.com/saichler/l8types/go/ifs"
-	"github.com/saichler/l8types/go/types/l8web"
 	"github.com/saichler/l8utils/go/utils/cache"
 	"github.com/saichler/l8utils/go/utils/web"
 )
@@ -22,7 +19,6 @@ type TopoService struct {
 	nodes       *cache.Cache
 	links       *cache.Cache
 	locations   *cache.Cache
-	mtx         *sync.RWMutex
 	discovery   ITopoDiscovery
 }
 
@@ -41,7 +37,6 @@ func (this *TopoService) Activate(sla *ifs.ServiceLevelAgreement, vnic ifs.IVNic
 	this.serviceName = sla.ServiceName()
 	this.serviceArea = sla.ServiceArea()
 	this.name = this.serviceName
-	this.mtx = &sync.RWMutex{}
 	this.discovery = sla.Args()[0].(ITopoDiscovery)
 
 	node, _ := vnic.Resources().Introspector().Inspect(&l8topo.L8TopologyNode{})
@@ -52,6 +47,8 @@ func (this *TopoService) Activate(sla *ifs.ServiceLevelAgreement, vnic ifs.IVNic
 
 	node, _ = vnic.Resources().Introspector().Inspect(&l8topo.L8TopologyLocation{})
 	introspecting.AddPrimaryKeyDecorator(node, "Location")
+
+	vnic.Resources().Registry().Register(&l8topo.L8TopologyQuery{})
 
 	this.nodes = cache.NewCache(&l8topo.L8TopologyNode{}, nil, nil, vnic.Resources())
 	this.links = cache.NewCache(&l8topo.L8TopologyLink{}, nil, nil, vnic.Resources())
@@ -70,8 +67,6 @@ func (this *TopoService) DeActivate() error {
 }
 
 func (this *TopoService) do(action ifs.Action, elements ifs.IElements) error {
-	this.mtx.Lock()
-	defer this.mtx.Unlock()
 	for _, elem := range elements.Elements() {
 		node, ok := elem.(*l8topo.L8TopologyNode)
 		if ok {
@@ -182,65 +177,6 @@ func (this *TopoService) Delete(elements ifs.IElements, vnic ifs.IVNic) ifs.IEle
 	return nil
 }
 
-func (this *TopoService) Get(elements ifs.IElements, vnic ifs.IVNic) ifs.IElements {
-	this.mtx.Lock()
-	defer this.mtx.Unlock()
-
-	topology := &l8topo.L8Topology{Name: this.name}
-	allNodes := this.nodes.Collect(func(i interface{}) (bool, interface{}) {
-		return true, i
-	})
-
-	topology.Nodes = make(map[string]*l8topo.L8TopologyNode)
-	for _, n := range allNodes {
-		node := n.(*l8topo.L8TopologyNode)
-		viewNode := &l8topo.L8TopologyNode{}
-		viewNode.Name = node.Location
-		viewNode.NodeId = node.Location
-		viewNode.Location = node.Location
-		topology.Nodes[viewNode.Location] = viewNode
-	}
-
-	allLinks := this.links.Collect(func(i interface{}) (bool, interface{}) {
-		return true, i
-	})
-	topology.Links = make(map[string]*l8topo.L8TopologyLink)
-	for _, l := range allLinks {
-		topolink := l.(*l8topo.L8TopologyLink)
-		aside := rootIdOf(topolink.Aside)
-		zside := rootIdOf(topolink.Zside)
-		laside := this.locationOf(aside)
-		lzside := this.locationOf(zside)
-		if aside == zside {
-			continue
-		}
-		buff := bytes.Buffer{}
-		buff.WriteString(laside)
-		buff.WriteString(lzside)
-		viewLink := createLink(laside, lzside, topolink.Direction)
-		viewLink.LinkId = buff.String()
-		exist, ok := topology.Links[viewLink.LinkId]
-		if ok {
-			if exist.Direction != topolink.Direction {
-				exist.Direction = l8topo.L8TopologyLinkDirection_Bidirectional
-			}
-		} else {
-			topology.Links[viewLink.LinkId] = viewLink
-		}
-	}
-
-	allLocations := this.locations.Collect(func(i interface{}) (bool, interface{}) {
-		return true, i
-	})
-	topology.Locations = make(map[string]*l8topo.L8TopologyLocation)
-	for _, l := range allLocations {
-		location := l.(*l8topo.L8TopologyLocation)
-		topology.Locations[location.Location] = location
-	}
-
-	return object.New(nil, topology)
-}
-
 func (this *TopoService) Failed(elements ifs.IElements, vnic ifs.IVNic, msg *ifs.Message) ifs.IElements {
 	return nil
 }
@@ -255,7 +191,7 @@ func (this *TopoService) WebService() ifs.IWebService {
 		nil, nil,
 		nil, nil,
 		nil, nil,
-		&l8web.L8Empty{}, &l8topo.L8Topology{})
+		&l8topo.L8TopologyQuery{}, &l8topo.L8Topology{})
 }
 
 /*

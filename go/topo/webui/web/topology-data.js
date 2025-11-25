@@ -86,19 +86,53 @@ TopologyBrowser.prototype.loadTopology = async function(name) {
     }
 };
 
-TopologyBrowser.prototype.topologyNameToEndpoint = function(name, metadata) {
+TopologyBrowser.prototype.topologyNameToEndpoint = function(name, metadata, canvasSelection) {
+    // Build body with canvas selection if available
+    const bodyObj = {
+        aggLevel: 0,
+        aggValue: "Location",
+        x: canvasSelection ? canvasSelection.x : 0,
+        y: canvasSelection ? canvasSelection.y : 0,
+        x1: canvasSelection ? canvasSelection.x1 : 0,
+        y1: canvasSelection ? canvasSelection.y1 : 0
+    };
+    const body = encodeURIComponent(JSON.stringify(bodyObj));
+
     // Use metadata if available (serviceName and serviceArea)
     if (metadata && metadata.serviceName !== undefined && metadata.serviceArea !== undefined) {
-        return `${this.apiBaseUrl}/${metadata.serviceArea}/${metadata.serviceName}`;
+        return `${this.apiBaseUrl}/${metadata.serviceArea}/${metadata.serviceName}?body=${body}`;
     }
     // Fallback: Extract layer from name (e.g., "Network-L1" -> "L1")
     const match = name.match(/L(\d+)/i);
     if (match) {
         const layer = `L${match[1]}`;
-        return `${this.apiBaseUrl}/1/${layer}`;
+        return `${this.apiBaseUrl}/1/${layer}?body=${body}`;
     }
     // Default fallback
-    return `${this.apiBaseUrl}/1/${name}`;
+    return `${this.apiBaseUrl}/1/${name}?body=${body}`;
+};
+
+TopologyBrowser.prototype.loadTopologyWithCanvas = async function(name) {
+    this.setStatus(`Loading topology with canvas selection: ${name}...`);
+    this.resetPagination();
+
+    try {
+        // Find metadata for this topology
+        const metadata = this.topologyMetadataList.find(item => item.name === name);
+        const endpoint = this.topologyNameToEndpoint(name, metadata, this.canvasSelection);
+        const response = await fetch(endpoint);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        this.currentTopology = await response.json();
+        this.renderTopology();
+        const coords = this.canvasSelection;
+        this.setStatus(`Topology "${name}" loaded for canvas (${Math.round(coords.x)}, ${Math.round(coords.y)}) to (${Math.round(coords.x1)}, ${Math.round(coords.y1)})`, 'success');
+    } catch (error) {
+        console.error('Error loading topology with canvas:', error);
+        this.setStatus(`Error loading topology: ${error.message}`, 'error');
+    }
 };
 
 TopologyBrowser.prototype.generateMockTopology = function(name) {

@@ -141,15 +141,20 @@ TopologyBrowser.prototype.drawNode = function(svg, node, pos, locationKey) {
     group.setAttribute('class', 'node');
     group.setAttribute('data-node-id', locationKey);
 
+    // Scale circle size based on count (min 6, max 20)
+    const baseRadius = 6;
+    const radius = node.count > 1 ? Math.min(baseRadius + Math.log2(node.count) * 3, 20) : baseRadius;
+
     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     circle.setAttribute('cx', pos.x);
     circle.setAttribute('cy', pos.y);
-    circle.setAttribute('r', '6');
+    circle.setAttribute('r', radius);
 
     const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     text.setAttribute('x', pos.x);
-    text.setAttribute('y', pos.y - 10);
-    text.textContent = node.nodeId || node.name;
+    text.setAttribute('y', pos.y - radius - 4);
+    const label = node.count > 1 ? `${node.nodeId || node.name} (${node.count})` : (node.nodeId || node.name);
+    text.textContent = label;
 
     group.appendChild(circle);
     group.appendChild(text);

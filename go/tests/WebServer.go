@@ -29,6 +29,7 @@ func startWebServer(port int, cert string) {
 	introspecting.AddPrimaryKeyDecorator(node, "ServiceName", "ServiceArea")
 	nic.Resources().Registry().Register(&l8topo.L8TopologyMetadataList{})
 	nic.Resources().Registry().Register(&l8topo.L8TopologyMetadata{})
+	nic.Resources().Registry().Register(&l8topo.L8TopologyQuery{})
 
 	hs, ok := nic.Resources().Services().ServiceHandler(health.ServiceName, 0)
 	if ok {

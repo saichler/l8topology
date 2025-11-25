@@ -42,9 +42,10 @@ TopologyBrowser.prototype.updateNodesList = function() {
     `;
 
     pageNodes.forEach(node => {
+        const countBadge = node.count > 1 ? `<span class="node-count-badge">${node.count}</span>` : '';
         html += `
             <div class="node-item" data-node-id="${node._key}">
-                <div class="node-item-id">${node.nodeId || node.name}</div>
+                <div class="node-item-id">${node.nodeId || node.name}${countBadge}</div>
                 <div class="node-item-location">${node.location || 'N/A'}</div>
             </div>
         `;
@@ -262,6 +263,10 @@ TopologyBrowser.prototype.showNodeDetails = function(nodeId) {
             <div class="link-detail-row">
                 <span class="link-detail-label">Location</span>
                 <span class="link-detail-value">${node.location || 'N/A'}</span>
+            </div>
+            <div class="link-detail-row">
+                <span class="link-detail-label">Device Count</span>
+                <span class="link-detail-value">${node.count || 1}</span>
             </div>
             <div class="link-detail-row">
                 <span class="link-detail-label">Latitude</span>

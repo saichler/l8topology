@@ -93,12 +93,17 @@ func createLink(aside, zside string, direction l8topo.L8TopologyLinkDirection) *
 	return link
 }
 
-func rootIdOf(side string) string {
+func rootIdOf(side string, nodeIds map[string]bool) string {
 	index1 := strings.Index(side, "<")
 	index2 := strings.Index(side, ">")
 	rootID := side[index1+1 : index2]
 	index3 := strings.LastIndex(rootID, "}")
-	return rootID[index3+1:]
+	nodeId := rootID[index3+1:]
+	_, ok := nodeIds[nodeId]
+	if !ok {
+		return ""
+	}
+	return nodeId
 }
 
 func createLinkId(aSidePropertyId, zSidePropertyId string, direction l8topo.L8TopologyLinkDirection) string {
