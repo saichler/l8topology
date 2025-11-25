@@ -14,9 +14,8 @@ import (
 
 func (this *TopoService) DiscoverNodes(vnic ifs.IVNic) {
 	fmt.Println("DiscoverNodes")
-	query := this.discovery.Query() + " limit 500 page 0"
-	resp := vnic.LeaderRequest(this.discovery.ServiceName(), this.discovery.ServiceArea(),
-		ifs.GET, query, 30)
+	query := this.discovery.Query()
+	resp := vnic.LeaderRequest(this.discovery.ServiceName(), this.discovery.ServiceArea(), ifs.GET, query, 60)
 	fmt.Println("Received Response")
 	if resp == nil {
 		fmt.Println("received nil response")
