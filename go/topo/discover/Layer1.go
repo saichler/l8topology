@@ -64,21 +64,119 @@ func (this *Layer1) ConvertToTopologyNode(elem interface{}) (*l8topo.L8TopologyN
 	node.NodeId = device.Id
 	node.Name = device.Equipmentinfo.SysName
 
+	location := createLocation(node.Location, float32(device.Equipmentinfo.Latitude), float32(device.Equipmentinfo.Longitude))
+
+	return node, location
+}
+
+func createLocation(nodeLocation string, latitude, longitude float32) *l8topo.L8TopologyLocation {
 	location := &l8topo.L8TopologyLocation{}
-	location.Location = node.Location
-	location.Latitude = float32(device.Equipmentinfo.Latitude)
-	location.Longitude = float32(device.Equipmentinfo.Longitude)
+	location.Location = nodeLocation
+	location.Latitude = latitude
+	location.Longitude = longitude
 
 	if location.Latitude == 0 || location.Longitude == 0 {
-		log, lat, ok := GetCityCoordinates(node.Location)
+		log, lat, ok := GetCityCoordinates(nodeLocation)
 		if !ok {
-			fmt.Println("Error getting log/lat for ", node.Location)
+			fmt.Println("Error getting log/lat for ", nodeLocation)
 		} else {
 			location.Latitude = float32(lat)
 			location.Longitude = float32(log)
 		}
 	}
-	return node, location
+
+	// Calculate SVG coordinates using Robinson projection
+	location.SvgX, location.SvgY = latLongToSVG(location.Latitude, location.Longitude)
+
+	return location
+}
+
+// Robinson projection lookup table
+// Each entry: latitude (degrees), plen (parallel length), pdfe (distance from equator)
+var robinsonTable = []struct {
+	lat  float32
+	plen float32
+	pdfe float32
+}{
+	{0, 1.0000, 0.0000},
+	{5, 0.9986, 0.0620},
+	{10, 0.9954, 0.1240},
+	{15, 0.9900, 0.1860},
+	{20, 0.9822, 0.2480},
+	{25, 0.9730, 0.3100},
+	{30, 0.9600, 0.3720},
+	{35, 0.9427, 0.4340},
+	{40, 0.9216, 0.4958},
+	{45, 0.8962, 0.5571},
+	{50, 0.8679, 0.6176},
+	{55, 0.8350, 0.6769},
+	{60, 0.7986, 0.7346},
+	{65, 0.7597, 0.7903},
+	{70, 0.7186, 0.8435},
+	{75, 0.6732, 0.8936},
+	{80, 0.6213, 0.9394},
+	{85, 0.5722, 0.9761},
+	{90, 0.5322, 1.0000},
+}
+
+// SVG calibration constants for Simplemaps 2000x857 Robinson projection map
+const (
+	svgCenterX    = float32(986)  // X coordinate of longitude 0
+	svgEquatorY   = float32(497)  // Y coordinate of equator
+	svgEastScale  = float32(1020) // Pixels from centerX to 180°E (plen=1)
+	svgWestScale  = float32(1000) // Pixels from centerX to 180°W (plen=1)
+	svgNorthScale = float32(511)  // Pixels from equator to ~83°N
+	svgSouthScale = float32(528)  // Pixels from equator to ~55°S
+)
+
+// latLongToSVG converts latitude/longitude to SVG coordinates using Robinson projection
+func latLongToSVG(lat, lon float32) (float32, float32) {
+	// Get absolute latitude for table lookup
+	absLat := lat
+	if absLat < 0 {
+		absLat = -absLat
+	}
+
+	// Interpolate Robinson parameters
+	var plen, pdfe float32
+	if absLat >= 90 {
+		plen = 0.5322
+		pdfe = 1.0000
+	} else {
+		idx := int(absLat / 5)
+		t := (absLat - float32(idx)*5) / 5
+		row1 := robinsonTable[idx]
+		nextIdx := idx + 1
+		if nextIdx > 18 {
+			nextIdx = 18
+		}
+		row2 := robinsonTable[nextIdx]
+		plen = row1.plen + t*(row2.plen-row1.plen)
+		pdfe = row1.pdfe + t*(row2.pdfe-row1.pdfe)
+	}
+
+	// Calculate X coordinate
+	var xScale float32
+	if lon >= 0 {
+		xScale = svgEastScale
+	} else {
+		xScale = svgWestScale
+	}
+	x := svgCenterX + (lon/180)*xScale*plen
+
+	// Calculate Y coordinate
+	var scale float32
+	var sign float32
+	if lat >= 0 {
+		scale = svgNorthScale
+		sign = 1
+	} else {
+		scale = svgSouthScale
+		sign = -1
+	}
+	y := svgEquatorY - sign*pdfe*scale
+
+	return x, y
 }
 
 func (this *Layer1) IsConnected(aside, zside interface{}) (bool, l8topo.L8TopologyLinkDirection) {
