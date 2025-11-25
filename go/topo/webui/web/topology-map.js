@@ -277,12 +277,9 @@ function createNetworkDeviceIcon(x, y, size, color, nodeType) {
 }
 
 TopologyBrowser.prototype.renderMap = function() {
-    if (this.layoutMode === 'hierarchical') {
-        this.renderHierarchical();
-        return;
-    }
-    if (this.layoutMode === 'circular') {
-        this.renderCircular();
+    // Non-map layouts use shared rendering with icons
+    if (this.layoutMode !== 'map') {
+        this.renderLayout();
         return;
     }
     const overlaySvg = document.getElementById('overlay-svg');
@@ -499,11 +496,10 @@ TopologyBrowser.prototype.highlightLink = function(linkId) {
     }, 2000);
 };
 
-// Hierarchical layout rendering (positions calculated server-side)
-TopologyBrowser.prototype.renderHierarchical = function() {
+// Shared layout rendering for non-map layouts (positions calculated server-side)
+TopologyBrowser.prototype.renderLayout = function() {
     const overlaySvg = document.getElementById('overlay-svg');
 
-    // Initialize SVG with defs for markers
     overlaySvg.innerHTML = `
         <defs>
             <marker id="arrow-end-status-1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
@@ -538,7 +534,6 @@ TopologyBrowser.prototype.renderHierarchical = function() {
     const links = this.currentTopology.links || {};
     const locations = this.currentTopology.locations || {};
 
-    // Build node positions from server-side locations
     const nodePositions = {};
     Object.entries(nodes).forEach(([locationKey, node]) => {
         const location = locations[node.location];
@@ -547,7 +542,6 @@ TopologyBrowser.prototype.renderHierarchical = function() {
         }
     });
 
-    // Draw links first (behind nodes)
     Object.values(links).forEach(link => {
         const asidePos = nodePositions[link.aside];
         const zsidePos = nodePositions[link.zside];
@@ -556,73 +550,6 @@ TopologyBrowser.prototype.renderHierarchical = function() {
         }
     });
 
-    // Draw nodes
-    Object.entries(nodes).forEach(([locationKey, node]) => {
-        const pos = nodePositions[node.nodeId];
-        if (pos) {
-            this.drawNode(overlaySvg, node, pos, locationKey, true);
-        }
-    });
-};
-
-// Circular layout rendering (positions calculated server-side)
-TopologyBrowser.prototype.renderCircular = function() {
-    const overlaySvg = document.getElementById('overlay-svg');
-
-    // Initialize SVG with defs for markers
-    overlaySvg.innerHTML = `
-        <defs>
-            <marker id="arrow-end-status-1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-                <path d="M 0 0 L 10 5 L 0 10 z" fill="#00c853" />
-            </marker>
-            <marker id="arrow-end-status-2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-                <path d="M 0 0 L 10 5 L 0 10 z" fill="#ff3d00" />
-            </marker>
-            <marker id="arrow-end-status-3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-                <path d="M 0 0 L 10 5 L 0 10 z" fill="#ffc107" />
-            </marker>
-            <marker id="arrow-end-status-0" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-                <path d="M 0 0 L 10 5 L 0 10 z" fill="#757575" />
-            </marker>
-            <marker id="arrow-start-status-1" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-                <path d="M 10 0 L 0 5 L 10 10 z" fill="#00c853" />
-            </marker>
-            <marker id="arrow-start-status-2" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-                <path d="M 10 0 L 0 5 L 10 10 z" fill="#ff3d00" />
-            </marker>
-            <marker id="arrow-start-status-3" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-                <path d="M 10 0 L 0 5 L 10 10 z" fill="#ffc107" />
-            </marker>
-            <marker id="arrow-start-status-0" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-                <path d="M 10 0 L 0 5 L 10 10 z" fill="#757575" />
-            </marker>
-        </defs>
-        <rect width="100%" height="100%" fill="#f0f9ff" rx="8" />
-    `;
-
-    const nodes = this.currentTopology.nodes || {};
-    const links = this.currentTopology.links || {};
-    const locations = this.currentTopology.locations || {};
-
-    // Build node positions from server-side locations
-    const nodePositions = {};
-    Object.entries(nodes).forEach(([locationKey, node]) => {
-        const location = locations[node.location];
-        if (location && location.svgX !== undefined && location.svgY !== undefined) {
-            nodePositions[node.nodeId] = { x: location.svgX, y: location.svgY };
-        }
-    });
-
-    // Draw links first (behind nodes)
-    Object.values(links).forEach(link => {
-        const asidePos = nodePositions[link.aside];
-        const zsidePos = nodePositions[link.zside];
-        if (asidePos && zsidePos) {
-            this.drawLink(overlaySvg, link, asidePos, zsidePos);
-        }
-    });
-
-    // Draw nodes
     Object.entries(nodes).forEach(([locationKey, node]) => {
         const pos = nodePositions[node.nodeId];
         if (pos) {

@@ -114,7 +114,7 @@ func (this *TopoService) Get(elements ifs.IElements, vnic ifs.IVNic) ifs.IElemen
 	if tq.Layout != l8topo.L8TopologyLayout_Location {
 		switch tq.Layout {
 		case l8topo.L8TopologyLayout_Hierarchical:
-			Radial(topology)
+			Hierarchical(topology)
 		case l8topo.L8TopologyLayout_Circular:
 			Circular(topology)
 		case l8topo.L8TopologyLayout_Radial:
