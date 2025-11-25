@@ -187,3 +187,12 @@ func (this *TopoService) matchLinks(maps map[string]map[string]interface{}) []*l
 
 	return links
 }
+
+func (this *TopoService) locationOf(nodeid string) string {
+	filter := &l8topo.L8TopologyNode{NodeId: nodeid}
+	tpnode, err := this.nodes.Get(filter)
+	if err != nil {
+		panic(err)
+	}
+	return tpnode.(*l8topo.L8TopologyNode).Location
+}

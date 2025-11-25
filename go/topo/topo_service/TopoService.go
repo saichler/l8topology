@@ -190,10 +190,15 @@ func (this *TopoService) Get(elements ifs.IElements, vnic ifs.IVNic) ifs.IElemen
 	allNodes := this.nodes.Collect(func(i interface{}) (bool, interface{}) {
 		return true, i
 	})
+
 	topology.Nodes = make(map[string]*l8topo.L8TopologyNode)
 	for _, n := range allNodes {
 		node := n.(*l8topo.L8TopologyNode)
-		topology.Nodes[node.Location] = node
+		viewNode := &l8topo.L8TopologyNode{}
+		viewNode.Name = node.Location
+		viewNode.NodeId = node.Location
+		viewNode.Location = node.Location
+		topology.Nodes[viewNode.Location] = viewNode
 	}
 
 	allLinks := this.links.Collect(func(i interface{}) (bool, interface{}) {
@@ -204,10 +209,15 @@ func (this *TopoService) Get(elements ifs.IElements, vnic ifs.IVNic) ifs.IElemen
 		topolink := l.(*l8topo.L8TopologyLink)
 		aside := rootIdOf(topolink.Aside)
 		zside := rootIdOf(topolink.Zside)
+		laside := this.locationOf(aside)
+		lzside := this.locationOf(zside)
+		if aside == zside {
+			continue
+		}
 		buff := bytes.Buffer{}
-		buff.WriteString(aside)
-		buff.WriteString(zside)
-		viewLink := createLink(aside, zside, topolink.Direction)
+		buff.WriteString(laside)
+		buff.WriteString(lzside)
+		viewLink := createLink(laside, lzside, topolink.Direction)
 		viewLink.LinkId = buff.String()
 		exist, ok := topology.Links[viewLink.LinkId]
 		if ok {
