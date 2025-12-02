@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"github.com/saichler/l8reflect/go/reflect/introspecting"
+	"github.com/saichler/l8reflect/go/reflect/helping"
 	"github.com/saichler/l8srlz/go/serialize/object"
 	"github.com/saichler/l8types/go/ifs"
 	"github.com/saichler/probler/go/prob/common"
@@ -15,7 +15,7 @@ func ActivateInv(nic ifs.IVNic) {
 	sla := ifs.NewServiceLevelAgreement(&InvServiceMock{}, common.INVENTORY_SERVICE_BOX, common.INVENTORY_AREA_BOX, true, nil)
 	nic.Resources().Registry().Register(&types.NetworkDeviceList{})
 	node, _ := nic.Resources().Introspector().Inspect(&types.NetworkDevice{})
-	introspecting.AddPrimaryKeyDecorator(node, "Id")
+	helping.AddPrimaryKeyDecorator(node, "Id")
 	nic.Resources().Services().Activate(sla, nic)
 }
 
