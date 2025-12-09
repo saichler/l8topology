@@ -4,7 +4,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/saichler/l8reflect/go/reflect/helping"
 	"github.com/saichler/l8srlz/go/serialize/object"
 	"github.com/saichler/l8topology/go/types/l8topo"
 	"github.com/saichler/l8types/go/ifs"
@@ -40,15 +39,10 @@ func (this *TopoService) Activate(sla *ifs.ServiceLevelAgreement, vnic ifs.IVNic
 	this.name = this.serviceName
 	this.discovery = sla.Args()[0].(ITopoDiscovery)
 
-	node, _ := vnic.Resources().Introspector().Inspect(&l8topo.L8TopologyNode{})
-	helping.AddPrimaryKeyDecorator(node, "NodeId")
-
-	node, _ = vnic.Resources().Introspector().Inspect(&l8topo.L8TopologyLink{})
-	helping.AddPrimaryKeyDecorator(node, "LinkId")
-
-	node, _ = vnic.Resources().Introspector().Inspect(&l8topo.L8TopologyLocation{})
-	helping.AddPrimaryKeyDecorator(node, "Location")
-
+	vnic.Resources().Introspector().Decorators().AddPrimaryKeyDecorator(&l8topo.L8TopologyNode{}, "NodeId")
+	vnic.Resources().Introspector().Decorators().AddPrimaryKeyDecorator(&l8topo.L8TopologyLink{}, "LinkId")
+	vnic.Resources().Introspector().Decorators().AddPrimaryKeyDecorator(&l8topo.L8TopologyLocation{}, "Location")
+	
 	vnic.Resources().Registry().Register(&l8topo.L8TopologyQuery{})
 
 	this.nodes = cache.NewCache(&l8topo.L8TopologyNode{}, nil, nil, vnic.Resources())
