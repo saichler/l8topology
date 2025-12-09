@@ -42,7 +42,7 @@ func (this *TopoService) Activate(sla *ifs.ServiceLevelAgreement, vnic ifs.IVNic
 	vnic.Resources().Introspector().Decorators().AddPrimaryKeyDecorator(&l8topo.L8TopologyNode{}, "NodeId")
 	vnic.Resources().Introspector().Decorators().AddPrimaryKeyDecorator(&l8topo.L8TopologyLink{}, "LinkId")
 	vnic.Resources().Introspector().Decorators().AddPrimaryKeyDecorator(&l8topo.L8TopologyLocation{}, "Location")
-	
+
 	vnic.Resources().Registry().Register(&l8topo.L8TopologyQuery{})
 
 	this.nodes = cache.NewCache(&l8topo.L8TopologyNode{}, nil, nil, vnic.Resources())

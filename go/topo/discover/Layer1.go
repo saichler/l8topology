@@ -3,7 +3,6 @@ package discover
 import (
 	"fmt"
 
-	"github.com/saichler/l8reflect/go/reflect/helping"
 	"github.com/saichler/l8topology/go/topo/topo_list"
 	"github.com/saichler/l8topology/go/topo/topo_service"
 	"github.com/saichler/l8topology/go/types/l8topo"
@@ -26,8 +25,7 @@ func ActivateLayer1(nic ifs.IVNic) {
 	sla := ifs.NewServiceLevelAgreement(&topo_service.TopoService{}, Layer1ServiceName, Layer1ServiceArea, true, nil)
 	sla.SetArgs(&Layer1{})
 	nic.Resources().Registry().Register(&types.NetworkDeviceList{})
-	node, _ := nic.Resources().Introspector().Inspect(&types.NetworkDevice{})
-	helping.AddPrimaryKeyDecorator(node, "Id")
+	nic.Resources().Introspector().Decorators().AddPrimaryKeyDecorator(&types.NetworkDevice{}, "Id")
 	nic.Resources().Services().Activate(sla, nic)
 }
 
