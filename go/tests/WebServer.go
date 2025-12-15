@@ -2,7 +2,6 @@ package tests
 
 import (
 	"github.com/saichler/l8bus/go/overlay/health"
-	"github.com/saichler/l8reflect/go/reflect/helping"
 	"github.com/saichler/l8topology/go/types/l8topo"
 	"github.com/saichler/l8types/go/ifs"
 	"github.com/saichler/l8utils/go/utils/ipsegment"
@@ -25,8 +24,7 @@ func startWebServer(port int, cert string) {
 
 	nic := topo.VnicByVnetNum(3, 1)
 	nic.Resources().Registry().Register(&l8topo.L8Topology{})
-	node, _ := nic.Resources().Introspector().Inspect(&l8topo.L8TopologyMetadata{})
-	helping.AddPrimaryKeyDecorator(node, "ServiceName", "ServiceArea")
+	nic.Resources().Introspector().Decorators().AddPrimaryKeyDecorator(&l8topo.L8TopologyMetadata{}, "ServiceName", "ServiceArea")
 	nic.Resources().Registry().Register(&l8topo.L8TopologyMetadataList{})
 	nic.Resources().Registry().Register(&l8topo.L8TopologyMetadata{})
 	nic.Resources().Registry().Register(&l8topo.L8TopologyQuery{})

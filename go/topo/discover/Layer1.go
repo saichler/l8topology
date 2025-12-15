@@ -2,6 +2,7 @@ package discover
 
 import (
 	"fmt"
+	"github.com/saichler/l8pollaris/go/pollaris/targets"
 
 	"github.com/saichler/l8topology/go/topo/topo_list"
 	"github.com/saichler/l8topology/go/topo/topo_service"
@@ -30,11 +31,13 @@ func ActivateLayer1(nic ifs.IVNic) {
 }
 
 func (this *Layer1) ServiceName() string {
-	return common.INVENTORY_SERVICE_BOX
+	sn, _ := targets.Links.Cache(common.NetworkDevice_Links_ID)
+	return sn
 }
 
 func (this *Layer1) ServiceArea() byte {
-	return common.INVENTORY_AREA_BOX
+	_, sa := targets.Links.Cache(common.NetworkDevice_Links_ID)
+	return sa
 }
 
 func (this *Layer1) Query() string {

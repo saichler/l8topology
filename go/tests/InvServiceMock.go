@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"github.com/saichler/l8reflect/go/reflect/helping"
+	"github.com/saichler/l8pollaris/go/pollaris/targets"
 	"github.com/saichler/l8srlz/go/serialize/object"
 	"github.com/saichler/l8types/go/ifs"
 	"github.com/saichler/probler/go/prob/common"
@@ -12,10 +12,10 @@ type InvServiceMock struct {
 }
 
 func ActivateInv(nic ifs.IVNic) {
-	sla := ifs.NewServiceLevelAgreement(&InvServiceMock{}, common.INVENTORY_SERVICE_BOX, common.INVENTORY_AREA_BOX, true, nil)
+	sn, sa := targets.Links.Cache(common.NetworkDevice_Links_ID)
+	sla := ifs.NewServiceLevelAgreement(&InvServiceMock{}, sn, sa, true, nil)
 	nic.Resources().Registry().Register(&types.NetworkDeviceList{})
-	node, _ := nic.Resources().Introspector().Inspect(&types.NetworkDevice{})
-	helping.AddPrimaryKeyDecorator(node, "Id")
+	nic.Resources().Introspector().Decorators().AddPrimaryKeyDecorator(&types.NetworkDevice{}, "Id")
 	nic.Resources().Services().Activate(sla, nic)
 }
 
