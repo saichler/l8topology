@@ -4,7 +4,7 @@ go 1.25.4
 
 require (
 	github.com/saichler/l8bus v0.0.0-20251202005543-ee483e2628d0
-	github.com/saichler/l8pollaris v0.0.0-20251215161852-8039ab7ade0f
+	github.com/saichler/l8pollaris v0.0.0-20251215193254-902d332ccaea
 	github.com/saichler/l8reflect v0.0.0-20251209192645-54426ab63938
 	github.com/saichler/l8services v0.0.0-20251214040709-a20ffcf7e771
 	github.com/saichler/l8srlz v0.0.0-20251212164513-0e6d9cfb21cb
