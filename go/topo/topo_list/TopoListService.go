@@ -30,12 +30,9 @@ func Activate(vnic ifs.IVNic) {
 	serviceConfig.SetVoter(true)
 	serviceConfig.SetTransactional(false)
 	serviceConfig.SetPrimaryKeys("ServiceName", "ServiceArea")
-	serviceConfig.SetWebService(web.New(ServiceName, ServiceArea,
-		nil, nil,
-		nil, nil,
-		nil, nil,
-		nil, nil,
-		&l8api.L8Query{}, &l8topo.L8TopologyMetadataList{}))
+	ws := web.New(ServiceName, ServiceArea, 0)
+	ws.AddEndpoint(&l8api.L8Query{}, ifs.GET, &l8topo.L8TopologyMetadataList{})
+	serviceConfig.SetWebService(ws)
 	base.Activate(serviceConfig, vnic)
 }
 

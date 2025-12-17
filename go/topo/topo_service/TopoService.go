@@ -181,12 +181,9 @@ func (this *TopoService) TransactionConfig() ifs.ITransactionConfig {
 }
 
 func (this *TopoService) WebService() ifs.IWebService {
-	return web.New(this.serviceName, this.serviceArea,
-		nil, nil,
-		nil, nil,
-		nil, nil,
-		nil, nil,
-		&l8topo.L8TopologyQuery{}, &l8topo.L8Topology{})
+	ws := web.New(this.serviceName, this.serviceArea, 0)
+	ws.AddEndpoint(&l8topo.L8TopologyQuery{}, ifs.GET, &l8topo.L8Topology{})
+	return ws
 }
 
 /*
