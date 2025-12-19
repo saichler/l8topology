@@ -15,7 +15,7 @@ func (this *TopoService) nodeL8Location(location string) *l8topo.L8TopologyLocat
 	if err == nil {
 		return l.(*l8topo.L8TopologyLocation)
 	}
-	return nil
+	return &l8topo.L8TopologyLocation{Location: location}
 }
 
 func (this *TopoService) createViewNode(node *l8topo.L8TopologyNode, tq *l8topo.L8TopologyQuery, nodeIds map[string]bool) (*l8topo.L8TopologyNode, *l8topo.L8TopologyLocation, string) {
