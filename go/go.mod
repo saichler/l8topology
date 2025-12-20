@@ -3,13 +3,13 @@ module github.com/saichler/l8topology/go
 go 1.25.4
 
 require (
-	github.com/saichler/l8bus v0.0.0-20251220133229-565d5b99250d
+	github.com/saichler/l8bus v0.0.0-20251220173756-6ddbd50d1107
 	github.com/saichler/l8pollaris v0.0.0-20251220131719-8090d1b6b6b0
 	github.com/saichler/l8reflect v0.0.0-20251218194655-af73200ea766
 	github.com/saichler/l8services v0.0.0-20251218213142-3d7afd531767
 	github.com/saichler/l8srlz v0.0.0-20251212164513-0e6d9cfb21cb
 	github.com/saichler/l8test v0.0.0-20251217200904-b3926873b8fc
-	github.com/saichler/l8types v0.0.0-20251218212939-ddbeead39768
+	github.com/saichler/l8types v0.0.0-20251220165432-626981b1fa0e
 	github.com/saichler/l8utils v0.0.0-20251220121516-5a427a2233b7
 	github.com/saichler/l8web v0.0.0-20251217213419-120d714953dc
 	github.com/saichler/probler v0.0.0-20251220130054-285f9d32714e
