@@ -3,7 +3,7 @@ module github.com/saichler/l8topology/go
 go 1.25.4
 
 require (
-	github.com/saichler/l8bus v0.0.0-20251220212607-bd3bd1638c97
+	github.com/saichler/l8bus v0.0.0-20251221005255-ef0d99ac957a
 	github.com/saichler/l8pollaris v0.0.0-20251220131719-8090d1b6b6b0
 	github.com/saichler/l8reflect v0.0.0-20251218194655-af73200ea766
 	github.com/saichler/l8services v0.0.0-20251220192156-3a8556f8c768
