@@ -9,10 +9,10 @@ require (
 	github.com/saichler/l8services v0.0.0-20251220192156-3a8556f8c768
 	github.com/saichler/l8srlz v0.0.0-20251212164513-0e6d9cfb21cb
 	github.com/saichler/l8test v0.0.0-20251220191907-7c6e7ba94103
-	github.com/saichler/l8types v0.0.0-20251220165432-626981b1fa0e
-	github.com/saichler/l8utils v0.0.0-20251220235304-c7794a3dd675
+	github.com/saichler/l8types v0.0.0-20251221143120-ed3d07cef9b0
+	github.com/saichler/l8utils v0.0.0-20251221151446-6649bb1a2680
 	github.com/saichler/l8web v0.0.0-20251217213419-120d714953dc
-	github.com/saichler/probler v0.0.0-20251220130054-285f9d32714e
+	github.com/saichler/probler v0.0.0-20251221162721-ed9dc9e90f8b
 	google.golang.org/protobuf v1.36.11
 )
 
@@ -20,6 +20,6 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/saichler/l8orm v0.0.0-20251219000629-1512f1c2c484 // indirect
-	github.com/saichler/l8ql v0.0.0-20251030150208-8a58a1d7ac8a // indirect
+	github.com/saichler/l8ql v0.0.0-20251221165737-6d5482691796 // indirect
 	golang.org/x/sys v0.39.0 // indirect
 )
