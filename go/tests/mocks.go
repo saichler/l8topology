@@ -1,3 +1,18 @@
+/*
+ * © 2025 Sharon Aicler (saichler@gmail.com)
+ *
+ * Layer 8 Ecosystem is licensed under the Apache License, Version 2.0.
+ * You may obtain a copy of the License at:
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package tests
 
 import (
@@ -6,6 +21,10 @@ import (
 	"github.com/saichler/probler/go/types"
 )
 
+// Nodes creates a list of mock network devices distributed across global locations.
+// The devices include routers, switches, and firewalls from various vendors
+// (Cisco, Juniper, Palo Alto Networks) with realistic configurations.
+// Locations use real world city coordinates from the worldcities.csv database.
 func Nodes() *types.NetworkDeviceList {
 	devices := make([]*types.NetworkDevice, 0)
 
@@ -39,7 +58,8 @@ func Nodes() *types.NetworkDeviceList {
 	return deviceList
 }
 
-// createPorts generates a topo_list of ports with interfaces
+// createPorts generates a list of network ports with interfaces.
+// Each port contains one interface with the specified naming convention.
 func createPorts(count int, ipAddress string, interfacePrefix string) []*types.Port {
 	ports := make([]*types.Port, count)
 	for i := 0; i < count; i++ {
@@ -53,7 +73,8 @@ func createPorts(count int, ipAddress string, interfacePrefix string) []*types.P
 	return ports
 }
 
-// createRouter creates a router network device with varied physical and logical inventory
+// createRouter creates a mock Cisco ASR router with complete physical and logical inventory.
+// Includes chassis, power supplies, fans, and network interfaces typical of a core router.
 func createRouter(name, ipAddress string, deviceId uint32, location string, longitude, latitude float64) *types.NetworkDevice {
 	return &types.NetworkDevice{
 		Id: name,
@@ -162,7 +183,8 @@ func createRouter(name, ipAddress string, deviceId uint32, location string, long
 	}
 }
 
-// createSwitch creates a switch network device with varied physical and logical inventory
+// createSwitch creates a mock Juniper EX switch with complete physical and logical inventory.
+// Includes chassis, power supply, fans, and GigE/10GigE interfaces typical of a datacenter switch.
 func createSwitch(name, ipAddress string, deviceId uint32, location string, longitude, latitude float64) *types.NetworkDevice {
 	return &types.NetworkDevice{
 		Id: name,
@@ -249,7 +271,8 @@ func createSwitch(name, ipAddress string, deviceId uint32, location string, long
 	}
 }
 
-// createFirewall creates a firewall network device with varied physical and logical inventory
+// createFirewall creates a mock Palo Alto Networks firewall with complete physical and logical inventory.
+// Includes chassis, redundant power supplies, fans, and security interfaces typical of an enterprise firewall.
 func createFirewall(name, ipAddress string, deviceId uint32, location string, longitude, latitude float64) *types.NetworkDevice {
 	return &types.NetworkDevice{
 		Id: name,
@@ -357,7 +380,12 @@ func createFirewall(name, ipAddress string, deviceId uint32, location string, lo
 	}
 }
 
-// createInterface is a helper function to create network interfaces with varied configurations
+// createInterface creates a network interface with type and speed determined by naming convention.
+// Interface types are mapped as follows:
+//   - "Te", "xe" prefixes: 10GigE interfaces (10 Gbps)
+//   - "ge", "Gi" prefixes: Gigabit Ethernet (1 Gbps)
+//   - "Mg", "me", "management": Management interfaces (1 Gbps)
+//   - Other: Standard Ethernet (100 Mbps)
 func createInterface(name, baseIP string, index int) *types.Interface {
 	// Vary interface types based on name patterns
 	var ifType types.InterfaceType

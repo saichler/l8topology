@@ -1,3 +1,27 @@
+/*
+ * © 2025 Sharon Aicler (saichler@gmail.com)
+ *
+ * Layer 8 Ecosystem is licensed under the Apache License, Version 2.0.
+ * You may obtain a copy of the License at:
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Package l8topo defines Protocol Buffer messages for network topology
+// representation and visualization in the Layer 8 Ecosystem.
+//
+// This package provides data structures for:
+//   - Network topology nodes (switches, routers, servers, etc.)
+//   - Network links between nodes with direction and status
+//   - Geographic and visual layout positioning
+//   - Multiple layout algorithms for topology visualization
+
 syntax = "proto3";
 
 package l8topo;
@@ -7,86 +31,153 @@ option java_outer_classname = "L8Topo";
 option java_package = "com.types.l8topo";
 option go_package = "./types/l8topo";
 
+// L8TopologyLayout defines the available layout algorithms for
+// arranging topology nodes in a visual representation.
 enum L8TopologyLayout {
+  // Location uses geographic coordinates (longitude/latitude) for positioning.
   Location = 0;
+  // Hierarchical arranges nodes in a tree-like structure with levels.
   Hierarchical = 1;
+  // Circular places nodes in a circular arrangement.
   Circular = 2;
+  // Radial arranges nodes in concentric circles from a center point.
   Radial = 3;
+  // Force_Directed uses physics simulation to position nodes based on links.
   Force_Directed = 4;
 }
 
+// L8TopologyQuery represents a request for topology data with layout
+// preferences and viewport boundaries.
 message L8TopologyQuery {
+  // layout specifies which layout algorithm to use for node positioning.
   L8TopologyLayout layout = 1;
+  // x is the left boundary of the viewport in SVG coordinates.
   float x = 2;
+  // y is the top boundary of the viewport in SVG coordinates.
   float y = 3;
+  // x1 is the right boundary of the viewport in SVG coordinates.
   float x1 = 4;
+  // y1 is the bottom boundary of the viewport in SVG coordinates.
   float y1 = 5;
 }
 
+// L8Topology is the main container for a complete network topology,
+// holding all nodes, links, and location data.
 message L8Topology {
+  // name is the identifier for this topology instance.
   string name = 1;
+  // nodes maps node IDs to their L8TopologyNode definitions.
   map<string, L8TopologyNode> nodes = 2;
+  // links maps link IDs to their L8TopologyLink definitions.
   map<string, L8TopologyLink> links = 3;
+  // locations maps location names to their L8TopologyLocation definitions.
   map<string, L8TopologyLocation> locations = 4;
 }
 
+// L8TopologyNodeType classifies network devices by their function
+// in the network infrastructure.
 enum L8TopologyNodeType {
+  // Generic represents an unclassified or unknown device type.
   Generic = 0;
+  // SWITCH represents a network switch for Layer 2 forwarding.
   SWITCH = 1;
+  // ROUTER represents a router for Layer 3 routing.
   ROUTER = 2;
+  // NETWORK_AGGREGATION represents an aggregation point in the network.
   NETWORK_AGGREGATION = 3;
+  // FIREWALL represents a security device for traffic filtering.
   FIREWALL = 4;
+  // LOAD_BALANCER represents a load balancing device.
   LOAD_BALANCER = 5;
+  // ACCESS_POINT represents a wireless access point.
   ACCESS_POINT = 6;
+  // SERVER represents a compute server or host.
   SERVER = 7;
+  // STORAGE represents a storage device or array.
   STORAGE = 8;
+  // GATEWAY represents a network gateway device.
   GATEWAY = 9;
 }
 
+// L8TopologyNode represents a single node (device) in the network topology.
 message L8TopologyNode {
+  // node_id is the unique identifier for this node.
   string node_id = 1;
+  // name is the human-readable display name for this node.
   string name = 2;
+  // location references the L8TopologyLocation where this node resides.
   string location = 3;
+  // count indicates how many instances this node represents (for aggregation).
   int32 count = 4;
+  // type classifies the node by its network function.
   L8TopologyNodeType type = 5;
 }
 
+// L8TopologyLocation defines both geographic and visual coordinates
+// for positioning nodes in the topology view.
 message L8TopologyLocation {
+  // location is the unique identifier/name for this location.
   string location = 1;
+  // longitude is the geographic longitude coordinate (for map-based layouts).
   float longitude = 2;
+  // latitude is the geographic latitude coordinate (for map-based layouts).
   float latitude = 3;
+  // svg_x is the computed X coordinate for SVG rendering.
   float svg_x = 4;
+  // svg_y is the computed Y coordinate for SVG rendering.
   float svg_y = 5;
 }
 
+// L8topologyLinkDirection indicates the traffic flow direction of a link.
 enum L8topologyLinkDirection {
+  // InvalidDirection represents an unset or invalid direction.
   InvalidDirection = 0;
+  // AsideToZside indicates traffic flows from the A-side to the Z-side.
   AsideToZside = 1;
+  // ZsideToAside indicates traffic flows from the Z-side to the A-side.
   ZsideToAside = 2;
+  // Bidirectional indicates traffic flows in both directions.
   Bidirectional = 3;
 }
 
+// L8TopologyLinkStatus represents the operational state of a network link.
 enum L8TopologyLinkStatus {
+  // InvalidStatus represents an unset or invalid status.
   InvalidStatus = 0;
+  // Up indicates the link is fully operational.
   Up = 1;
+  // Down indicates the link is not operational.
   Down = 2;
+  // Partial indicates the link is partially operational (degraded).
   Partial = 3;
 }
 
+// L8TopologyLink represents a connection between two nodes in the topology.
 message L8TopologyLink {
+  // link_id is the unique identifier for this link.
   string link_id = 1;
+  // aside is the node_id of the first endpoint (A-side).
   string aside = 2;
+  // zside is the node_id of the second endpoint (Z-side).
   string zside = 3;
+  // direction indicates the traffic flow direction of this link.
   L8topologyLinkDirection direction = 4;
+  // status indicates the current operational state of this link.
   L8TopologyLinkStatus status = 5;
 }
 
+// L8TopologyMetadataList is a collection of topology metadata entries.
 message L8TopologyMetadataList {
+  // list contains the topology metadata entries.
   repeated L8TopologyMetadata list = 1;
 }
 
+// L8TopologyMetadata provides metadata about a topology service instance.
 message L8TopologyMetadata {
+  // name is the display name for this topology.
   string name = 1;
+  // serviceName is the internal service identifier.
   string serviceName = 2;
+  // serviceArea is the numeric area/region code for the service.
   int32 serviceArea = 3;
 }

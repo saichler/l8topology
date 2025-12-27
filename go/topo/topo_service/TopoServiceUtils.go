@@ -1,3 +1,18 @@
+/*
+ * © 2025 Sharon Aicler (saichler@gmail.com)
+ *
+ * Layer 8 Ecosystem is licensed under the Apache License, Version 2.0.
+ * You may obtain a copy of the License at:
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package topo_service
 
 import (
@@ -12,6 +27,9 @@ import (
 	"github.com/saichler/l8types/go/ifs"
 )
 
+// DiscoverNodes initiates topology discovery by querying the configured
+// discovery service for inventory data. It sends a leader request to the
+// discovery service and processes the response to populate topology nodes and links.
 func (this *TopoService) DiscoverNodes(vnic ifs.IVNic) {
 	fmt.Println("DiscoverNodes")
 	query := this.discovery.Query()
@@ -26,6 +44,9 @@ func (this *TopoService) DiscoverNodes(vnic ifs.IVNic) {
 	this.discoverNodes(resp, vnic)
 }
 
+// discoverNodes processes the response from the discovery service and converts
+// inventory elements into topology nodes and locations. It handles both single
+// element responses and list responses containing a "List" field.
 func (this *TopoService) discoverNodes(elements ifs.IElements, vnic ifs.IVNic) {
 	nodes := []interface{}{}
 	topoNodes := []*l8topo.L8TopologyNode{}
@@ -67,6 +88,9 @@ func (this *TopoService) discoverNodes(elements ifs.IElements, vnic ifs.IVNic) {
 	this.discoverLinks(nodes, vnic)
 }
 
+// discoverLinks analyzes discovered nodes to identify and create links between them.
+// It collects all properties of each node and matches them against other nodes
+// using the discovery interface's IsConnected method.
 func (this *TopoService) discoverLinks(nodes []interface{}, vnic ifs.IVNic) {
 	maps := make(map[string]map[string]interface{})
 	for _, node := range nodes {
@@ -83,6 +107,9 @@ func (this *TopoService) discoverLinks(nodes []interface{}, vnic ifs.IVNic) {
 	this.Post(object.New(nil, links), vnic)
 }
 
+// createLink creates a new L8TopologyLink with the given endpoints and direction.
+// The link ID is generated from the endpoint IDs and direction indicator.
+// The link status is set to Up by default.
 func createLink(aside, zside string, direction l8topo.L8TopologyLinkDirection) *l8topo.L8TopologyLink {
 	link := &l8topo.L8TopologyLink{}
 	link.LinkId = createLinkId(aside, zside, direction)
@@ -93,6 +120,10 @@ func createLink(aside, zside string, direction l8topo.L8TopologyLinkDirection) *
 	return link
 }
 
+// rootIdOf extracts the node ID from a property path string.
+// The path format is expected to contain the node ID within angle brackets
+// and curly braces (e.g., "<...{nodeId}>"). Returns empty string if the
+// extracted ID is not in the nodeIds map.
 func rootIdOf(side string, nodeIds map[string]bool) string {
 	index1 := strings.Index(side, "<")
 	index2 := strings.Index(side, ">")
@@ -106,6 +137,10 @@ func rootIdOf(side string, nodeIds map[string]bool) string {
 	return nodeId
 }
 
+// createLinkId generates a unique link identifier from the endpoint property IDs
+// and direction. The direction is represented as an arrow symbol:
+// "->" for AsideToZside, "<-" for ZsideToAside, "<->" for Bidirectional,
+// and "-" for other/unknown directions.
 func createLinkId(aSidePropertyId, zSidePropertyId string, direction l8topo.L8TopologyLinkDirection) string {
 	buff := bytes.Buffer{}
 	buff.WriteString(aSidePropertyId)
@@ -123,17 +158,22 @@ func createLinkId(aSidePropertyId, zSidePropertyId string, direction l8topo.L8To
 	return buff.String()
 }
 
+// matchLinks finds connections between node elements by comparing all pairs
+// of properties from different nodes. It uses an optimized algorithm that
+// only checks each pair once and stops checking once an element is matched.
+// Returns a slice of discovered links.
 func (this *TopoService) matchLinks(maps map[string]map[string]interface{}) []*l8topo.L8TopologyLink {
 	links := make([]*l8topo.L8TopologyLink, 0)
 	alreadyConnected := make(map[string]bool)
 
-	// Flatten the nested map into a topo_list of port entries for more efficient iteration
+	// elemEntry represents a single property element with its parent node context
 	type elemEntry struct {
-		nodeId string
-		elemId string
-		elem   interface{}
+		nodeId string      // ID of the node containing this element
+		elemId string      // Property path identifier
+		elem   interface{} // The actual element value
 	}
 
+	// Flatten the nested map into a list of port entries for more efficient iteration
 	list := make([]*elemEntry, 0)
 	for nodeId, elems := range maps {
 		for elemId, elem := range elems {
@@ -169,6 +209,7 @@ func (this *TopoService) matchLinks(maps map[string]map[string]interface{}) []*l
 				continue
 			}
 
+			// Ensure consistent ordering of A-side and Z-side based on node ID
 			var aside, zside *elemEntry
 			if strings.Compare(aSideEntry.nodeId, zSideEntry.nodeId) < 0 {
 				aside = aSideEntry
@@ -192,6 +233,8 @@ func (this *TopoService) matchLinks(maps map[string]map[string]interface{}) []*l
 	return links
 }
 
+// locationOf retrieves the location name for a node given its node ID.
+// Panics if the node is not found in the cache.
 func (this *TopoService) locationOf(nodeid string) string {
 	filter := &l8topo.L8TopologyNode{NodeId: nodeid}
 	tpnode, err := this.nodes.Get(filter)

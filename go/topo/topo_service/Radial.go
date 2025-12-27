@@ -1,3 +1,18 @@
+/*
+ * © 2025 Sharon Aicler (saichler@gmail.com)
+ *
+ * Layer 8 Ecosystem is licensed under the Apache License, Version 2.0.
+ * You may obtain a copy of the License at:
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package topo_service
 
 import (
@@ -6,11 +21,29 @@ import (
 	"github.com/saichler/l8topology/go/types/l8topo"
 )
 
+// Layout constants for radial positioning
 const (
-	radialPadding float32 = 80
-	radialMinRingSpacing float32 = 60
+	radialPadding        float32 = 80  // Minimum padding from SVG edges in pixels
+	radialMinRingSpacing float32 = 60  // Minimum spacing between concentric rings
 )
 
+// Radial arranges topology nodes in a radial layout with the most connected
+// node at the center and other nodes placed in concentric rings based on
+// their hop distance from the center node.
+//
+// The layout process:
+//  1. Build an adjacency list from the topology links
+//  2. Find the most connected node to use as the center (root)
+//  3. Use BFS to assign each node to a ring based on hop distance from root
+//  4. Distribute nodes evenly around their assigned ring
+//  5. Update node locations with calculated SVG coordinates
+//
+// Unlike the Circular layout which groups by connectivity, Radial uses
+// network distance - nodes directly connected to the center are in ring 1,
+// nodes two hops away are in ring 2, etc. This makes the layout useful for
+// visualizing network topology and understanding hop distances.
+//
+// Disconnected nodes are placed in the outermost ring.
 func Radial(topology *l8topo.L8Topology) {
 	nodes := topology.GetNodes()
 	links := topology.GetLinks()
@@ -19,11 +52,12 @@ func Radial(topology *l8topo.L8Topology) {
 		return
 	}
 
+	// Calculate center point and maximum radius
 	centerX := svgWidth / 2
 	centerY := svgHeight / 2
 	maxRadius := float32(math.Min(float64(svgWidth), float64(svgHeight)))/2 - radialPadding
 
-	// Build adjacency list
+	// Build adjacency list representing node connectivity
 	adjacency := make(map[string]map[string]bool)
 	for _, node := range nodes {
 		adjacency[node.NodeId] = make(map[string]bool)
@@ -38,7 +72,7 @@ func Radial(topology *l8topo.L8Topology) {
 		}
 	}
 
-	// Find node with most connections as root
+	// Find node with most connections as root (center hub)
 	var rootNode *l8topo.L8TopologyNode
 	maxConnections := 0
 	for _, node := range nodes {
@@ -49,10 +83,11 @@ func Radial(topology *l8topo.L8Topology) {
 		}
 	}
 
-	// BFS to assign levels (distance from root)
+	// BFS to assign levels (distance from root) - determines ring placement
 	levels := make(map[string]int)
 	visited := make(map[string]bool)
 
+	// queueItem holds node ID and its assigned level for BFS traversal
 	type queueItem struct {
 		nodeId string
 		level  int
@@ -96,7 +131,7 @@ func Radial(topology *l8topo.L8Topology) {
 		}
 	}
 
-	// Group nodes by level
+	// Group nodes by level for ring assignment
 	levelGroups := make(map[int][]string)
 	for nodeId, level := range levels {
 		levelGroups[level] = append(levelGroups[level], nodeId)
@@ -105,7 +140,7 @@ func Radial(topology *l8topo.L8Topology) {
 	// Calculate positions - radial layout with root at center
 	positions := make(map[string]struct{ x, y float32 })
 
-	// Calculate ring spacing
+	// Calculate ring spacing, ensuring minimum spacing is maintained
 	ringSpacing := maxRadius / float32(maxLevel+1)
 	if ringSpacing < radialMinRingSpacing && maxLevel > 0 {
 		ringSpacing = radialMinRingSpacing
@@ -118,7 +153,7 @@ func Radial(topology *l8topo.L8Topology) {
 				positions[nodeId] = struct{ x, y float32 }{x: centerX, y: centerY}
 			}
 		} else {
-			// Nodes at this level form a ring
+			// Nodes at this level form a ring at proportional radius
 			radius := ringSpacing * float32(level)
 			if radius > maxRadius {
 				radius = maxRadius
@@ -136,7 +171,7 @@ func Radial(topology *l8topo.L8Topology) {
 		}
 	}
 
-	// Update location SvgX and SvgY for each node (key is nodeId)
+	// Update location SvgX and SvgY for each node
 	for nodeId, node := range nodes {
 		pos, ok := positions[node.NodeId]
 		if !ok {

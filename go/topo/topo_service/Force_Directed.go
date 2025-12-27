@@ -1,3 +1,18 @@
+/*
+ * © 2025 Sharon Aicler (saichler@gmail.com)
+ *
+ * Layer 8 Ecosystem is licensed under the Apache License, Version 2.0.
+ * You may obtain a copy of the License at:
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package topo_service
 
 import (
@@ -7,22 +22,49 @@ import (
 	"github.com/saichler/l8topology/go/types/l8topo"
 )
 
+// Physics simulation constants for force-directed layout
 const (
-	forceIterations     = 300
-	forceRepulsion      = 5000.0  // Repulsion constant between nodes
-	forceAttraction     = 0.01   // Spring constant for links
-	forceDamping        = 0.85   // Velocity damping factor
-	forceMinMovement    = 0.5    // Stop if max movement is below this
-	forcePadding        = 80.0
-	forceIdealLength    = 100.0  // Ideal spring length
+	forceIterations  = 300     // Maximum simulation iterations
+	forceRepulsion   = 5000.0  // Coulomb's law constant for node repulsion
+	forceAttraction  = 0.01    // Hooke's law spring constant for link attraction
+	forceDamping     = 0.85    // Velocity damping factor to ensure convergence
+	forceMinMovement = 0.5     // Stop simulation when max movement falls below this
+	forcePadding     = 80.0    // Minimum padding from SVG edges in pixels
+	forceIdealLength = 100.0   // Ideal spring length for connected nodes
 )
 
+// forceNode represents a node in the force simulation with position and velocity.
 type forceNode struct {
-	x, y   float64
-	vx, vy float64
-	nodeId string
+	x, y   float64  // Current position coordinates
+	vx, vy float64  // Current velocity components
+	nodeId string   // Reference to the topology node
 }
 
+// Force_Directed arranges topology nodes using a physics-based simulation.
+// The algorithm models the graph as a physical system where:
+//   - All nodes repel each other (like electrically charged particles)
+//   - Connected nodes attract each other (like springs)
+//
+// The simulation runs iteratively, applying forces and updating positions
+// until the system reaches equilibrium or the maximum iterations are reached.
+//
+// Physics model:
+//   - Repulsion: Coulomb's law (F = k / d²) pushes nodes apart
+//   - Attraction: Hooke's law (F = k * (d - idealLength)) pulls connected nodes together
+//   - Damping: Velocity is reduced each iteration to ensure convergence
+//
+// The layout process:
+//  1. Initialize nodes in a circular pattern with random perturbation
+//  2. Run simulation loop:
+//     a. Calculate repulsive forces between all node pairs
+//     b. Calculate attractive forces for connected nodes (springs)
+//     c. Apply velocities with damping and boundary constraints
+//     d. Check for convergence (movement below threshold)
+//  3. Center the final graph in the SVG canvas
+//  4. Update node locations with calculated coordinates
+//
+// This layout is effective for visualizing graph structure as it naturally
+// separates clusters and keeps connected nodes close together.
 func Force_Directed(topology *l8topo.L8Topology) {
 	nodes := topology.GetNodes()
 	links := topology.GetLinks()
@@ -32,12 +74,13 @@ func Force_Directed(topology *l8topo.L8Topology) {
 		return
 	}
 
+	// Calculate center point and boundaries
 	centerX := float64(svgWidth) / 2
 	centerY := float64(svgHeight) / 2
 	maxX := float64(svgWidth) - forcePadding
 	maxY := float64(svgHeight) - forcePadding
 
-	// Build adjacency list
+	// Build adjacency list for force calculations
 	adjacency := make(map[string]map[string]bool)
 	for _, node := range nodes {
 		adjacency[node.NodeId] = make(map[string]bool)
@@ -52,7 +95,8 @@ func Force_Directed(topology *l8topo.L8Topology) {
 		}
 	}
 
-	// Initialize node positions randomly around center
+	// Initialize node positions in a circular pattern with random perturbation
+	// This provides a reasonable starting configuration for the simulation
 	forceNodes := make(map[string]*forceNode)
 	nodeList := make([]*forceNode, 0, nodeCount)
 
@@ -78,6 +122,7 @@ func Force_Directed(topology *l8topo.L8Topology) {
 		maxMovement := 0.0
 
 		// Calculate repulsive forces between all pairs of nodes
+		// Using Coulomb's law: F = k / d² (inverse square law)
 		for i := 0; i < len(nodeList); i++ {
 			for j := i + 1; j < len(nodeList); j++ {
 				n1 := nodeList[i]
@@ -87,13 +132,13 @@ func Force_Directed(topology *l8topo.L8Topology) {
 				dy := n2.y - n1.y
 				dist := math.Sqrt(dx*dx + dy*dy)
 				if dist < 1 {
-					dist = 1
+					dist = 1 // Prevent division by zero
 				}
 
 				// Coulomb's law: F = k / d^2
 				force := forceRepulsion / (dist * dist)
 
-				// Normalize and apply force
+				// Normalize direction and apply force (equal and opposite)
 				fx := (dx / dist) * force
 				fy := (dy / dist) * force
 
@@ -105,6 +150,7 @@ func Force_Directed(topology *l8topo.L8Topology) {
 		}
 
 		// Calculate attractive forces for connected nodes (springs)
+		// Using Hooke's law: F = k * (d - idealLength)
 		for _, link := range links {
 			n1 := forceNodes[link.Aside]
 			n2 := forceNodes[link.Zside]
@@ -116,14 +162,14 @@ func Force_Directed(topology *l8topo.L8Topology) {
 			dy := n2.y - n1.y
 			dist := math.Sqrt(dx*dx + dy*dy)
 			if dist < 1 {
-				dist = 1
+				dist = 1 // Prevent division by zero
 			}
 
 			// Hooke's law: F = k * (d - idealLength)
 			displacement := dist - forceIdealLength
 			force := forceAttraction * displacement
 
-			// Normalize and apply force
+			// Normalize direction and apply force
 			fx := (dx / dist) * force
 			fy := (dy / dist) * force
 
@@ -133,23 +179,23 @@ func Force_Directed(topology *l8topo.L8Topology) {
 			n2.vy -= fy
 		}
 
-		// Apply velocities and damping
+		// Apply velocities with damping and boundary constraints
 		for _, fn := range nodeList {
-			// Apply damping
+			// Apply damping to ensure convergence
 			fn.vx *= forceDamping
 			fn.vy *= forceDamping
 
-			// Update position
+			// Update position based on velocity
 			fn.x += fn.vx
 			fn.y += fn.vy
 
-			// Track maximum movement
+			// Track maximum movement for convergence check
 			movement := math.Sqrt(fn.vx*fn.vx + fn.vy*fn.vy)
 			if movement > maxMovement {
 				maxMovement = movement
 			}
 
-			// Keep within bounds
+			// Keep within bounds (elastic collision with walls)
 			if fn.x < forcePadding {
 				fn.x = forcePadding
 				fn.vx = 0
@@ -168,13 +214,13 @@ func Force_Directed(topology *l8topo.L8Topology) {
 			}
 		}
 
-		// Check for convergence
+		// Check for convergence - stop if movement is negligible
 		if maxMovement < forceMinMovement {
 			break
 		}
 	}
 
-	// Center the graph
+	// Center the graph in the SVG canvas
 	minX, minY := math.MaxFloat64, math.MaxFloat64
 	graphMaxX, graphMaxY := -math.MaxFloat64, -math.MaxFloat64
 	for _, fn := range nodeList {
@@ -192,17 +238,18 @@ func Force_Directed(topology *l8topo.L8Topology) {
 		}
 	}
 
+	// Calculate offset to center the graph
 	graphWidth := graphMaxX - minX
 	graphHeight := graphMaxY - minY
 	offsetX := centerX - (minX + graphWidth/2)
 	offsetY := centerY - (minY + graphHeight/2)
 
-	// Apply centering offset
+	// Apply centering offset with final bounds check
 	for _, fn := range nodeList {
 		fn.x += offsetX
 		fn.y += offsetY
 
-		// Final bounds check
+		// Final bounds check after centering
 		if fn.x < forcePadding {
 			fn.x = forcePadding
 		}
@@ -217,7 +264,7 @@ func Force_Directed(topology *l8topo.L8Topology) {
 		}
 	}
 
-	// Update location SvgX and SvgY for each node (key is nodeId)
+	// Update location SvgX and SvgY for each node
 	for nodeId, node := range nodes {
 		fn, ok := forceNodes[node.NodeId]
 		if !ok {

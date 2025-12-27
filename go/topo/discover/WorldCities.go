@@ -1,3 +1,18 @@
+/*
+ * © 2025 Sharon Aicler (saichler@gmail.com)
+ *
+ * Layer 8 Ecosystem is licensed under the Apache License, Version 2.0.
+ * You may obtain a copy of the License at:
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package discover
 
 import (
@@ -8,12 +23,24 @@ import (
 	"sync"
 )
 
+// Module-level state for city coordinates lookup.
+// The data is lazily loaded from CSV on first access and cached for subsequent lookups.
 var (
-	cityCoordinates map[string][2]float64
-	cityMutex       sync.RWMutex
-	citiesLoaded    bool
+	cityCoordinates map[string][2]float64  // Maps city name to [longitude, latitude]
+	cityMutex       sync.RWMutex           // Protects concurrent access to cityCoordinates
+	citiesLoaded    bool                   // Indicates if the CSV has been loaded
 )
 
+// loadCities reads the worldcities.csv file and populates the cityCoordinates map.
+// The function is idempotent - it only loads data once and subsequent calls return immediately.
+// Thread-safe through mutex protection.
+//
+// The CSV format is expected to be:
+// "city","city_ascii","lat","lng","country","iso2","iso3","admin_name","capital","population","id"
+//
+// Cities are indexed by two key formats:
+//   - Full format: "City, AdminName, Country" (e.g., "Bozova, Şanlıurfa, Turkey")
+//   - Short format: "City, Country" (e.g., "Tokyo, Japan")
 func loadCities() error {
 	cityMutex.Lock()
 	defer cityMutex.Unlock()
@@ -36,16 +63,13 @@ func loadCities() error {
 		return err
 	}
 
-	// CSV format: "city","city_ascii","lat","lng","country","iso2","iso3","admin_name","capital","population","id"
-	// Supports both key formats:
-	// - "City, AdminName, Country" (e.g., "Bozova, Şanlıurfa, Turkey")
-	// - "City, Country" (e.g., "Bāmyān, Afghanistan")
+	// Parse CSV records, skipping header row
 	for i, record := range records {
 		if i == 0 {
 			continue // skip header
 		}
 		if len(record) < 8 {
-			continue
+			continue // skip malformed rows
 		}
 
 		city := strings.TrimSpace(record[0])
@@ -69,6 +93,13 @@ func loadCities() error {
 	return nil
 }
 
+// GetCityCoordinates looks up geographic coordinates for a city by name.
+// The city name should be formatted as either:
+//   - "City, AdminName, Country" (e.g., "Bozova, Şanlıurfa, Turkey")
+//   - "City, Country" (e.g., "Tokyo, Japan")
+//
+// Returns longitude, latitude, and a boolean indicating if the city was found.
+// The function is thread-safe and lazily loads the city database on first call.
 func GetCityCoordinates(cityName string) (longitude, latitude float64, found bool) {
 	cityMutex.RLock()
 	if !citiesLoaded {

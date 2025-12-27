@@ -1,3 +1,18 @@
+/*
+ * © 2025 Sharon Aicler (saichler@gmail.com)
+ *
+ * Layer 8 Ecosystem is licensed under the Apache License, Version 2.0.
+ * You may obtain a copy of the License at:
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package topo_service
 
 import (
@@ -8,6 +23,9 @@ import (
 	"github.com/saichler/l8types/go/ifs"
 )
 
+// nodeL8Location retrieves the L8TopologyLocation for a given location name.
+// If the location is not found in the cache, returns a new location with
+// only the location name populated.
 func (this *TopoService) nodeL8Location(location string) *l8topo.L8TopologyLocation {
 	filter := &l8topo.L8TopologyLocation{}
 	filter.Location = location
@@ -18,6 +36,10 @@ func (this *TopoService) nodeL8Location(location string) *l8topo.L8TopologyLocat
 	return &l8topo.L8TopologyLocation{Location: location}
 }
 
+// createViewNode creates a view-specific node representation based on the query layout.
+// For Location layout, nodes are grouped by their location. For other layouts, each
+// node maintains its individual identity. Returns the view node, its location, and
+// a location key, or nil values if the node is outside the viewport boundaries.
 func (this *TopoService) createViewNode(node *l8topo.L8TopologyNode, tq *l8topo.L8TopologyQuery, nodeIds map[string]bool) (*l8topo.L8TopologyNode, *l8topo.L8TopologyLocation, string) {
 	nodeLocation := this.nodeL8Location(node.Location)
 	if tq.X != 0 || tq.Y != 0 || tq.X1 != 0 || tq.Y1 != 0 {
@@ -43,6 +65,9 @@ func (this *TopoService) createViewNode(node *l8topo.L8TopologyNode, tq *l8topo.
 	return viewNode, nodeLocation, viewNode.Location
 }
 
+// collectNodes gathers all topology nodes from the cache, applies viewport filtering,
+// and populates the topology with view-appropriate node representations.
+// For Location layout, multiple nodes at the same location are aggregated.
 func (this *TopoService) collectNodes(topology *l8topo.L8Topology, tq *l8topo.L8TopologyQuery, nodeIds map[string]bool) {
 	allNodes := this.nodes.Collect(func(i interface{}) (bool, interface{}) {
 		return true, i
@@ -66,6 +91,10 @@ func (this *TopoService) collectNodes(topology *l8topo.L8Topology, tq *l8topo.L8
 	}
 }
 
+// collectLinks gathers all topology links from the cache and creates view-appropriate
+// link representations. For Location layout, links are aggregated between locations.
+// Links connecting nodes at the same location are excluded. Bidirectional links are
+// merged when duplicate links in opposite directions are detected.
 func (this *TopoService) collectLinks(topology *l8topo.L8Topology, tq *l8topo.L8TopologyQuery, nodeIds map[string]bool) {
 	allLinks := this.links.Collect(func(i interface{}) (bool, interface{}) {
 		return true, i
@@ -105,6 +134,10 @@ func (this *TopoService) collectLinks(topology *l8topo.L8Topology, tq *l8topo.L8
 	}
 }
 
+// Get retrieves topology data based on the query parameters.
+// It collects nodes and links within the specified viewport, then applies
+// the requested layout algorithm (Hierarchical, Circular, Radial, or Force_Directed)
+// to calculate node positions. Returns the complete topology structure.
 func (this *TopoService) Get(elements ifs.IElements, vnic ifs.IVNic) ifs.IElements {
 	tq := elements.Element().(*l8topo.L8TopologyQuery)
 	topology := &l8topo.L8Topology{Name: this.name}

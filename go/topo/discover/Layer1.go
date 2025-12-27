@@ -1,3 +1,24 @@
+/*
+ * © 2025 Sharon Aicler (saichler@gmail.com)
+ *
+ * Layer 8 Ecosystem is licensed under the Apache License, Version 2.0.
+ * You may obtain a copy of the License at:
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Package discover provides topology discovery implementations for the Layer 8 Ecosystem.
+// It includes discovery providers that can query external inventory systems and convert
+// network device data into topology nodes, links, and locations.
+//
+// The package also provides geographic utilities for converting location names to
+// coordinates and projecting those coordinates onto SVG map visualizations.
 package discover
 
 import (
@@ -12,15 +33,22 @@ import (
 	"github.com/saichler/probler/go/types"
 )
 
+// Layer1 implements the ITopoDiscovery interface for Layer 1 (physical) network discovery.
+// It discovers network devices from the Probler inventory service and converts them
+// into topology nodes with geographic location data.
 type Layer1 struct {
 }
 
+// Service registration constants for Layer 1 topology
 const (
-	Layer1Name        = "Network Layer 1"
-	Layer1ServiceName = "L1"
-	Layer1ServiceArea = byte(1)
+	Layer1Name        = "Network Layer 1"  // Display name for the topology
+	Layer1ServiceName = "L1"               // Internal service identifier
+	Layer1ServiceArea = byte(1)            // Service area code
 )
 
+// ActivateLayer1 registers and activates the Layer 1 topology service.
+// It registers the topology in the topology list, configures type decorators,
+// and activates the topology service with the Layer1 discovery provider.
 func ActivateLayer1(nic ifs.IVNic) {
 	topo_list.AddTopology(Layer1Name, Layer1ServiceName, Layer1ServiceArea, nic)
 	sla := ifs.NewServiceLevelAgreement(&topo_service.TopoService{}, Layer1ServiceName, Layer1ServiceArea, true, nil)
@@ -30,34 +58,44 @@ func ActivateLayer1(nic ifs.IVNic) {
 	nic.Resources().Services().Activate(sla, nic)
 }
 
+// ServiceName returns the name of the inventory service to query for network devices.
 func (this *Layer1) ServiceName() string {
 	sn, _ := targets.Links.Cache(common.NetworkDevice_Links_ID)
 	return sn
 }
 
+// ServiceArea returns the area code of the inventory service.
 func (this *Layer1) ServiceArea() byte {
 	_, sa := targets.Links.Cache(common.NetworkDevice_Links_ID)
 	return sa
 }
 
+// Query returns the SQL-like query string to retrieve all network devices.
 func (this *Layer1) Query() string {
 	return "select * from NetworkDevice"
 }
 
+// ModelTypeName returns the type name used for property collection.
+// Port properties are collected for link matching between devices.
 func (this *Layer1) ModelTypeName() string {
 	return "Port"
 }
 
+// IdOf extracts the unique device ID from a NetworkDevice element.
 func (this *Layer1) IdOf(elem interface{}) string {
 	device := elem.(*types.NetworkDevice)
 	return device.Id
 }
 
+// LocationOf extracts the location name from a NetworkDevice element.
 func (this *Layer1) LocationOf(elem interface{}) string {
 	device := elem.(*types.NetworkDevice)
 	return device.Equipmentinfo.Location
 }
 
+// ConvertToTopologyNode converts a NetworkDevice into a topology node and location.
+// It extracts device information, determines the node type, and creates location
+// data with SVG coordinates calculated from geographic position.
 func (this *Layer1) ConvertToTopologyNode(elem interface{}) (*l8topo.L8TopologyNode, *l8topo.L8TopologyLocation) {
 	node := &l8topo.L8TopologyNode{}
 	device := elem.(*types.NetworkDevice)
@@ -69,6 +107,8 @@ func (this *Layer1) ConvertToTopologyNode(elem interface{}) (*l8topo.L8TopologyN
 	return node, location
 }
 
+// NodeType maps a Probler DeviceType to the corresponding L8TopologyNodeType.
+// Returns Generic for unrecognized device types.
 func (this *Layer1) NodeType(elem interface{}) l8topo.L8TopologyNodeType {
 	device := elem.(*types.NetworkDevice)
 	switch device.Equipmentinfo.DeviceType {
@@ -92,6 +132,10 @@ func (this *Layer1) NodeType(elem interface{}) l8topo.L8TopologyNodeType {
 	return l8topo.L8TopologyNodeType_Generic
 }
 
+// createLocation builds an L8TopologyLocation with geographic and SVG coordinates.
+// If latitude/longitude are not provided, it attempts to look up coordinates
+// from the world cities database. SVG coordinates are calculated using
+// Robinson projection for accurate map visualization.
 func createLocation(nodeLocation string, latitude, longitude float32) *l8topo.L8TopologyLocation {
 	location := &l8topo.L8TopologyLocation{}
 	location.Location = nodeLocation
@@ -114,12 +158,14 @@ func createLocation(nodeLocation string, latitude, longitude float32) *l8topo.L8
 	return location
 }
 
-// Robinson projection lookup table
-// Each entry: latitude (degrees), plen (parallel length), pdfe (distance from equator)
+// robinsonTable contains the Robinson projection lookup table.
+// Each entry maps a latitude to its corresponding parallel length (plen)
+// and proportional distance from equator (pdfe). Values between entries
+// are linearly interpolated for smooth projection.
 var robinsonTable = []struct {
-	lat  float32
-	plen float32
-	pdfe float32
+	lat  float32  // Latitude in degrees (0-90)
+	plen float32  // Parallel length factor (1.0 at equator)
+	pdfe float32  // Proportional distance from equator (0.0-1.0)
 }{
 	{0, 1.0000, 0.0000},
 	{5, 0.9986, 0.0620},
@@ -142,17 +188,21 @@ var robinsonTable = []struct {
 	{90, 0.5322, 1.0000},
 }
 
-// SVG calibration constants for Simplemaps 2000x857 Robinson projection map
+// SVG calibration constants for Simplemaps 2000x857 Robinson projection map.
+// These values are calibrated for the specific map image to ensure accurate
+// geographic placement of topology nodes.
 const (
-	svgCenterX    = float32(986)  // X coordinate of longitude 0
+	svgCenterX    = float32(986)  // X coordinate of longitude 0 (prime meridian)
 	svgEquatorY   = float32(497)  // Y coordinate of equator
-	svgEastScale  = float32(1020) // Pixels from centerX to 180°E (plen=1)
-	svgWestScale  = float32(1000) // Pixels from centerX to 180°W (plen=1)
+	svgEastScale  = float32(1020) // Pixels from centerX to 180°E at plen=1
+	svgWestScale  = float32(1000) // Pixels from centerX to 180°W at plen=1
 	svgNorthScale = float32(511)  // Pixels from equator to ~83°N
 	svgSouthScale = float32(528)  // Pixels from equator to ~55°S
 )
 
-// latLongToSVG converts latitude/longitude to SVG coordinates using Robinson projection
+// latLongToSVG converts latitude/longitude coordinates to SVG pixel coordinates
+// using the Robinson projection. This pseudo-cylindrical projection provides
+// a visually balanced representation of the world map with minimal distortion.
 func latLongToSVG(lat, lon float32) (float32, float32) {
 	// Get absolute latitude for table lookup
 	absLat := lat
@@ -160,7 +210,7 @@ func latLongToSVG(lat, lon float32) (float32, float32) {
 		absLat = -absLat
 	}
 
-	// Interpolate Robinson parameters
+	// Interpolate Robinson parameters from lookup table
 	var plen, pdfe float32
 	if absLat >= 90 {
 		plen = 0.5322
@@ -178,7 +228,7 @@ func latLongToSVG(lat, lon float32) (float32, float32) {
 		pdfe = row1.pdfe + t*(row2.pdfe-row1.pdfe)
 	}
 
-	// Calculate X coordinate
+	// Calculate X coordinate based on longitude and parallel length
 	var xScale float32
 	if lon >= 0 {
 		xScale = svgEastScale
@@ -187,7 +237,7 @@ func latLongToSVG(lat, lon float32) (float32, float32) {
 	}
 	x := svgCenterX + (lon/180)*xScale*plen
 
-	// Calculate Y coordinate
+	// Calculate Y coordinate based on latitude and distance from equator
 	var scale float32
 	var sign float32
 	if lat >= 0 {
@@ -202,6 +252,10 @@ func latLongToSVG(lat, lon float32) (float32, float32) {
 	return x, y
 }
 
+// IsConnected determines if two ports are connected and the direction of the link.
+// This is a stub implementation that uses a deterministic hash to simulate
+// connection discovery. In a production system, this would query actual
+// network discovery data (LLDP, CDP, etc.) to determine real connections.
 func (this *Layer1) IsConnected(aside, zside interface{}) (bool, l8topo.L8TopologyLinkDirection) {
 	// Cast to Port type
 	asidePort := aside.(*types.Port)
@@ -233,7 +287,8 @@ func (this *Layer1) IsConnected(aside, zside interface{}) (bool, l8topo.L8Topolo
 	return false, l8topo.L8TopologyLinkDirection_InvalidDirection
 }
 
-// simpleHash creates a simple hash from a string
+// simpleHash creates a simple deterministic hash from a string.
+// Used for consistent pseudo-random decisions in the IsConnected stub.
 func simpleHash(s string) int {
 	hash := 0
 	for i := 0; i < len(s); i++ {
