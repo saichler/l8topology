@@ -3,14 +3,14 @@ module github.com/saichler/l8topology/go
 go 1.25.4
 
 require (
-	github.com/saichler/l8bus v0.0.0-20251227235447-80422773a909
+	github.com/saichler/l8bus v0.0.0-20251229161115-ef9b4833c63e
 	github.com/saichler/l8pollaris v0.0.0-20251227151640-2d440aed9da1
-	github.com/saichler/l8reflect v0.0.0-20251229051932-80c149f07178
+	github.com/saichler/l8reflect v0.0.0-20251229162036-ea2572ba86fc
 	github.com/saichler/l8services v0.0.0-20251227145359-8da06cab6a7c
 	github.com/saichler/l8srlz v0.0.0-20251226163123-de32dc54dd4b
 	github.com/saichler/l8test v0.0.0-20251227041840-6ef7d1910347
-	github.com/saichler/l8types v0.0.0-20251228152552-0f5f114650d1
-	github.com/saichler/l8utils v0.0.0-20251228152205-63772a2178b1
+	github.com/saichler/l8types v0.0.0-20251229153716-97f3ce136e2a
+	github.com/saichler/l8utils v0.0.0-20251229164914-b66330e18ad4
 	github.com/saichler/l8web v0.0.0-20251226171103-598facccefe5
 	github.com/saichler/probler v0.0.0-20251228170831-7008bf334cc4
 	google.golang.org/protobuf v1.36.11
