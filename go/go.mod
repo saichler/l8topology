@@ -6,13 +6,13 @@ require (
 	github.com/saichler/l8bus v0.0.0-20260211144017-401cc56ba05a
 	github.com/saichler/l8pollaris v0.0.0-20260220154041-aefc80e6c433
 	github.com/saichler/l8reflect v0.0.0-20260221171923-d53b219a99da
-	github.com/saichler/l8services v0.0.0-20260116142809-b257a28b21ee
+	github.com/saichler/l8services v0.0.0-20260222022720-4dee316c2323
 	github.com/saichler/l8srlz v0.0.0-20251226163123-de32dc54dd4b
 	github.com/saichler/l8test v0.0.0-20260211144346-d5d15efbde4f
 	github.com/saichler/l8types v0.0.0-20260220135640-63802a435416
 	github.com/saichler/l8utils v0.0.0-20260211151437-9b2ec4a159ae
 	github.com/saichler/l8web v0.0.0-20260204165802-d6f2d5aa5439
-	github.com/saichler/probler v0.0.0-20260221160322-c50d62a2df5e
+	github.com/saichler/probler v0.0.0-20260221224158-b82738b3b7d8
 	google.golang.org/protobuf v1.36.11
 )
 
