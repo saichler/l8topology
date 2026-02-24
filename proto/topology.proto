@@ -111,6 +111,10 @@ message L8TopologyNode {
   int32 count = 4;
   // type classifies the node by its network function.
   L8TopologyNodeType type = 5;
+  // alarm_count is the number of active alarms on this node (populated by alarm overlay).
+  int32 alarm_count = 6;
+  // highest_alarm_severity is the highest alarm severity value on this node (0=none, 1-5 maps to severity levels).
+  int32 highest_alarm_severity = 7;
 }
 
 // L8TopologyLocation defines both geographic and visual coordinates
@@ -164,6 +168,10 @@ message L8TopologyLink {
   L8topologyLinkDirection direction = 4;
   // status indicates the current operational state of this link.
   L8TopologyLinkStatus status = 5;
+  // alarm_count is the number of active alarms on this link (populated by alarm overlay).
+  int32 alarm_count = 6;
+  // highest_alarm_severity is the highest alarm severity value on this link (0=none, 1-5 maps to severity levels).
+  int32 highest_alarm_severity = 7;
 }
 
 // L8TopologyMetadataList is a collection of topology metadata entries.
