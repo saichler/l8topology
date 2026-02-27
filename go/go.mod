@@ -9,7 +9,7 @@ require (
 	github.com/saichler/l8services v0.0.0-20260222022720-4dee316c2323
 	github.com/saichler/l8srlz v0.0.0-20251226163123-de32dc54dd4b
 	github.com/saichler/l8test v0.0.0-20260211144346-d5d15efbde4f
-	github.com/saichler/l8types v0.0.0-20260220135640-63802a435416
+	github.com/saichler/l8types v0.0.0-20260227155501-8fa330f2540d
 	github.com/saichler/l8utils v0.0.0-20260211151437-9b2ec4a159ae
 	github.com/saichler/l8web v0.0.0-20260224202612-c973e8a2c2db
 	github.com/saichler/probler v0.0.0-20260227143245-fd4e196044c4
