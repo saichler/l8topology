@@ -20,6 +20,6 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/lib/pq v1.11.2 // indirect
 	github.com/saichler/l8orm v0.0.0-20260228182051-df4d9b9c4d41 // indirect
-	github.com/saichler/l8ql v0.0.0-20260203044230-734f2adb910e // indirect
+	github.com/saichler/l8ql v0.0.0-20260228184750-adc402b17e27 // indirect
 	golang.org/x/sys v0.41.0 // indirect
 )
