@@ -6,7 +6,7 @@ require (
 	github.com/saichler/l8bus v0.0.0-20260225184617-adbef968e04f
 	github.com/saichler/l8pollaris v0.0.0-20260301140058-24ca66c4852f
 	github.com/saichler/l8reflect v0.0.0-20260224010106-68da13dcd0f9
-	github.com/saichler/l8services v0.0.0-20260222022720-4dee316c2323
+	github.com/saichler/l8services v0.0.0-20260301141838-8f78492b7878
 	github.com/saichler/l8srlz v0.0.0-20251226163123-de32dc54dd4b
 	github.com/saichler/l8test v0.0.0-20260211144346-d5d15efbde4f
 	github.com/saichler/l8types v0.0.0-20260301141609-181de6f5ed44
