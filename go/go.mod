@@ -1,6 +1,6 @@
 module github.com/saichler/l8topology/go
 
-go 1.25.4
+go 1.26.1
 
 require (
 	github.com/saichler/l8bus v0.0.0-20260313172528-28faa07e3dcc
