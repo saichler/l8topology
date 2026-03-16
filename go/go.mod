@@ -4,7 +4,7 @@ go 1.25.4
 
 require (
 	github.com/saichler/l8bus v0.0.0-20260315165336-1e5b5ad18d93
-	github.com/saichler/l8pollaris v0.0.0-20260310131422-d7a531a1535d
+	github.com/saichler/l8pollaris v0.0.0-20260316013709-da4a17c6a2bd
 	github.com/saichler/l8reflect v0.0.0-20260306101914-2763da1fd8d5
 	github.com/saichler/l8services v0.0.0-20260314152440-3ca2cb22511d
 	github.com/saichler/l8srlz v0.0.0-20251226163123-de32dc54dd4b
@@ -12,7 +12,7 @@ require (
 	github.com/saichler/l8types v0.0.0-20260315141150-5b2cd127cc15
 	github.com/saichler/l8utils v0.0.0-20260315152209-6887c77b44af
 	github.com/saichler/l8web v0.0.0-20260314153329-75a4c9185638
-	github.com/saichler/probler v0.0.0-20260316005435-ca68f085cc7c
+	github.com/saichler/probler v0.0.0-20260316013429-3c821b3b6812
 	google.golang.org/protobuf v1.36.11
 )
 
