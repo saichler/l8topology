@@ -12,13 +12,13 @@ require (
 	github.com/saichler/l8types v0.0.0-20260317135407-26b0486254e4
 	github.com/saichler/l8utils v0.0.0-20260317111136-703d22bea6e3
 	github.com/saichler/l8web v0.0.0-20260317230404-24f82f577cd4
-	github.com/saichler/probler v0.0.0-20260318124944-844bb61ac747
+	github.com/saichler/probler v0.0.0-20260318141105-dc3189baadd5
 	google.golang.org/protobuf v1.36.11
 )
 
 require (
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/lib/pq v1.11.2 // indirect
+	github.com/lib/pq v1.12.0 // indirect
 	github.com/saichler/l8orm v0.0.0-20260314140035-14439941c449 // indirect
 	github.com/saichler/l8ql v0.0.0-20260315011229-afeee38686c0 // indirect
 	golang.org/x/sys v0.42.0 // indirect
