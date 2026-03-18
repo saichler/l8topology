@@ -12,7 +12,7 @@ require (
 	github.com/saichler/l8types v0.0.0-20260317135407-26b0486254e4
 	github.com/saichler/l8utils v0.0.0-20260317111136-703d22bea6e3
 	github.com/saichler/l8web v0.0.0-20260317230404-24f82f577cd4
-	github.com/saichler/probler v0.0.0-20260317231010-69d7e98eb423
+	github.com/saichler/probler v0.0.0-20260318124944-844bb61ac747
 	google.golang.org/protobuf v1.36.11
 )
 
