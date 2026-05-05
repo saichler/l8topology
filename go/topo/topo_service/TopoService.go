@@ -141,13 +141,13 @@ func (this *TopoService) doNodes(action ifs.Action, node *l8topo.L8TopologyNode)
 	var err error
 	switch action {
 	case ifs.POST:
-		_, err = this.nodes.Post(node, false)
+		_, _, err = this.nodes.Post(node, false)
 	case ifs.PUT:
-		_, err = this.nodes.Put(node, false)
+		_, _, err = this.nodes.Put(node, false)
 	case ifs.DELETE:
-		_, err = this.nodes.Delete(node, false)
+		_, _, err = this.nodes.Delete(node, false)
 	case ifs.PATCH:
-		_, err = this.nodes.Patch(node, false)
+		_, _, err = this.nodes.Patch(node, false)
 	default:
 		return errors.New("unknown action for topology nodes")
 	}
@@ -159,13 +159,13 @@ func (this *TopoService) doLinks(action ifs.Action, link *l8topo.L8TopologyLink)
 	var err error
 	switch action {
 	case ifs.POST:
-		_, err = this.links.Post(link, false)
+		_, _, err = this.links.Post(link, false)
 	case ifs.PUT:
-		_, err = this.links.Put(link, false)
+		_, _, err = this.links.Put(link, false)
 	case ifs.DELETE:
-		_, err = this.links.Delete(link, false)
+		_, _, err = this.links.Delete(link, false)
 	case ifs.PATCH:
-		_, err = this.links.Patch(link, false)
+		_, _, err = this.links.Patch(link, false)
 	default:
 		return errors.New("unknown action for topology links")
 	}
@@ -177,13 +177,13 @@ func (this *TopoService) doLocations(action ifs.Action, location *l8topo.L8Topol
 	var err error
 	switch action {
 	case ifs.POST:
-		_, err = this.locations.Post(location, false)
+		_, _, err = this.locations.Post(location, false)
 	case ifs.PUT:
-		_, err = this.locations.Put(location, false)
+		_, _, err = this.locations.Put(location, false)
 	case ifs.DELETE:
-		_, err = this.locations.Delete(location, false)
+		_, _, err = this.locations.Delete(location, false)
 	case ifs.PATCH:
-		_, err = this.locations.Patch(location, false)
+		_, _, err = this.locations.Patch(location, false)
 	default:
 		return errors.New("unknown action for topology location")
 	}
