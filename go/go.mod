@@ -20,7 +20,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/lib/pq v1.12.3 // indirect
-	github.com/saichler/l8orm v0.0.0-20260613141908-6b4b22a827f7 // indirect
+	github.com/saichler/l8orm v0.0.0-20260613145442-8ef992eb7bcb // indirect
 	github.com/saichler/l8ql v0.0.0-20260613133019-24b364d1e3d8 // indirect
 	golang.org/x/sys v0.46.0 // indirect
 )
