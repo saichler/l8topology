@@ -12,7 +12,7 @@ require (
 	github.com/saichler/l8types v0.0.0-20260913222005-0b4a31604ebc
 	github.com/saichler/l8utils v0.0.0-20260920140320-672b09d6da31
 	github.com/saichler/l8web v0.0.0-20260920002634-0e48182bb933
-	github.com/saichler/probler v0.0.0-20260917181059-f2a3c9694757
+	github.com/saichler/probler v0.0.0-20260921114217-d3acbf93d89c
 	google.golang.org/protobuf v1.36.12
 )
 
@@ -21,6 +21,6 @@ require (
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/lib/pq v1.12.3 // indirect
 	github.com/saichler/l8orm v0.0.0-20260916142109-e7f0284c95ee // indirect
-	github.com/saichler/l8ql v0.0.0-20260915205353-691ef2e3d8be // indirect
+	github.com/saichler/l8ql v0.0.0-20260921121948-1fd49f6b641d // indirect
 	golang.org/x/sys v0.48.0 // indirect
 )
