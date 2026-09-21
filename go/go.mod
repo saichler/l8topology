@@ -21,6 +21,6 @@ require (
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/lib/pq v1.12.3 // indirect
 	github.com/saichler/l8orm v0.0.0-20260916142109-e7f0284c95ee // indirect
-	github.com/saichler/l8ql v0.0.0-20260921121948-1fd49f6b641d // indirect
+	github.com/saichler/l8ql v0.0.0-20260921123906-d882e04fcb76 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 )
