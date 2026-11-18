@@ -2,7 +2,7 @@
 
 set -e
 # Use the protoc image to run protoc.sh and generate the bindings.
-docker run --user "$(id -u):$(id -g)" -e PROTO=topology.proto --mount type=bind,source="$PWD",target=/home/proto/ -it saichler/protoc:latest
+docker run --user "$(id -u):$(id -g)" -e PROTO=topology.proto --mount type=bind,source="$PWD",target=/home/proto/ -it registry.layer-8.dev:44443/library/protoc:latest
 
 # Now move the generated bindings to the models directory and clean up
 rm -rf ../go/types
