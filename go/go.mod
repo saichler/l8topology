@@ -12,7 +12,7 @@ require (
 	github.com/saichler/l8types v0.0.0-20261125054145-7f1f929e233f
 	github.com/saichler/l8utils v0.0.0-20261127151802-1e13fadc42f3
 	github.com/saichler/l8web v0.0.0-20261120204925-7dad0334c0fa
-	github.com/saichler/probler v0.0.0-20261126075608-56be1a29fe0e
+	github.com/saichler/probler v0.0.0-20261127185036-9b1ea4807f2c
 	google.golang.org/protobuf v1.36.12
 )
 
@@ -20,7 +20,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/lib/pq v1.12.3 // indirect
-	github.com/saichler/l8ai v0.0.0-20261125054425-490bb68eceda // indirect
+	github.com/saichler/l8ai v0.0.0-20261127185030-36aab158e92d // indirect
 	github.com/saichler/l8common v0.0.0-20261118162801-0af5af311317 // indirect
 	github.com/saichler/l8orm v0.0.0-20261119232002-2800820e4648 // indirect
 	github.com/saichler/l8ql v0.0.0-20261127153911-06a51460c037 // indirect

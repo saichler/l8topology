@@ -6,8 +6,8 @@ github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aN
 github.com/gorilla/websocket v1.5.3/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/lib/pq v1.12.3 h1:tTWxr2YLKwIvK90ZXEw8GP7UFHtcbTtty8zsI+YjrfQ=
 github.com/lib/pq v1.12.3/go.mod h1:/p+8NSbOcwzAEI7wiMXFlgydTwcgTr3OSKMsD2BitpA=
-github.com/saichler/l8ai v0.0.0-20261125054425-490bb68eceda h1:UBnIoQEdhrmqA3CVZ8S+yaGmEwZBBDnTnX/WvseTmUo=
-github.com/saichler/l8ai v0.0.0-20261125054425-490bb68eceda/go.mod h1:d13IO1w2OGOSgSAc8dEBE/C95QZDwb6uuHKiqTAKlPY=
+github.com/saichler/l8ai v0.0.0-20261127185030-36aab158e92d h1:KNG+425KkcJy/mQrMUxuqAmsluFwMVg3eqMT0jgdYQA=
+github.com/saichler/l8ai v0.0.0-20261127185030-36aab158e92d/go.mod h1:d13IO1w2OGOSgSAc8dEBE/C95QZDwb6uuHKiqTAKlPY=
 github.com/saichler/l8bus v0.0.0-20261127031941-f0955770c6ed h1:yrsYGNVYnTQaFfSNLVRX+JoWhoRV47BCIVP1fVlVcZs=
 github.com/saichler/l8bus v0.0.0-20261127031941-f0955770c6ed/go.mod h1:ZK1m4Zqy9WhGVZXl5znHTr7+/r19rOytqwBqhH02Ui8=
 github.com/saichler/l8common v0.0.0-20261118162801-0af5af311317 h1:TR/Fh8LoVBTsP7OpvMtl/WRhkcGY9XLriubsSD19MQk=
@@ -32,8 +32,8 @@ github.com/saichler/l8utils v0.0.0-20261127151802-1e13fadc42f3 h1:lrbUoOYWABaPq+
 github.com/saichler/l8utils v0.0.0-20261127151802-1e13fadc42f3/go.mod h1:nKdvYAEGLyHfxPg09oR6OfkJ0SniSbPb+Zi6wr/D5LU=
 github.com/saichler/l8web v0.0.0-20261120204925-7dad0334c0fa h1:aR+KZX1SlDp8FWgc4PLzzlP0mnr0czbCSiUYRNZszOs=
 github.com/saichler/l8web v0.0.0-20261120204925-7dad0334c0fa/go.mod h1:r2j6dgKs41L+dwaSh3hQ9OJN0RnQP0C8NWxAbAn+c8c=
-github.com/saichler/probler v0.0.0-20261126075608-56be1a29fe0e h1:DG0BW8kAmoP9dFrnoZgg6hIaMp25NCf/uhPa+Xvkqw8=
-github.com/saichler/probler v0.0.0-20261126075608-56be1a29fe0e/go.mod h1:3SmozVci2+FIzlQkm7PuXcUxfG8Qjc+Nml1/0AJPQrc=
+github.com/saichler/probler v0.0.0-20261127185036-9b1ea4807f2c h1:BYOO9hjj5IANAQuvN8lYaW6bbKufU+8vHHCrSlfADg0=
+github.com/saichler/probler v0.0.0-20261127185036-9b1ea4807f2c/go.mod h1:3SmozVci2+FIzlQkm7PuXcUxfG8Qjc+Nml1/0AJPQrc=
 golang.org/x/sys v0.50.0 h1:dkKZEFTEKaLr1sjhs0WiKqoi8Jj5nHbS3Njmx1UoMJs=
 golang.org/x/sys v0.50.0/go.mod h1:hNLxWAXmnKAxqDtdwIYC4bM9oQPEecfsnNMuSxOs3og=
 google.golang.org/protobuf v1.36.12 h1:pJOKDDOyeXErUroCihFAd5LQuwXBSpVnKGrj5o/fwxc=
