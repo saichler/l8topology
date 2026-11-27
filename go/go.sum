@@ -6,8 +6,8 @@ github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aN
 github.com/gorilla/websocket v1.5.3/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/lib/pq v1.12.3 h1:tTWxr2YLKwIvK90ZXEw8GP7UFHtcbTtty8zsI+YjrfQ=
 github.com/lib/pq v1.12.3/go.mod h1:/p+8NSbOcwzAEI7wiMXFlgydTwcgTr3OSKMsD2BitpA=
-github.com/saichler/l8ai v0.0.0-20261127232541-6fddf1e292e1 h1:2olA2D4L7G0XlzOl73cUt4y2gLtjuXDoL3yf3LiJyxg=
-github.com/saichler/l8ai v0.0.0-20261127232541-6fddf1e292e1/go.mod h1:d13IO1w2OGOSgSAc8dEBE/C95QZDwb6uuHKiqTAKlPY=
+github.com/saichler/l8ai v0.0.0-20261127233733-674f53814032 h1:E2Xx/S1qsZ5xNrdszJFxKryPu9dcx53C3A/BMn/R3Zc=
+github.com/saichler/l8ai v0.0.0-20261127233733-674f53814032/go.mod h1:d13IO1w2OGOSgSAc8dEBE/C95QZDwb6uuHKiqTAKlPY=
 github.com/saichler/l8bus v0.0.0-20261127031941-f0955770c6ed h1:yrsYGNVYnTQaFfSNLVRX+JoWhoRV47BCIVP1fVlVcZs=
 github.com/saichler/l8bus v0.0.0-20261127031941-f0955770c6ed/go.mod h1:ZK1m4Zqy9WhGVZXl5znHTr7+/r19rOytqwBqhH02Ui8=
 github.com/saichler/l8common v0.0.0-20261127232957-9a80ff2b0032 h1:QCN6wNWG2t2fmchEUqVAidtgyfKjsYSwN0mywpdwHP4=
